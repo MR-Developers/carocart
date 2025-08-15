@@ -1,4 +1,4 @@
-package com.example.carocart
+package com.carocart.carocart
 
 import io.flutter.embedding.android.FlutterActivity
 
