@@ -1,6 +1,7 @@
 import 'package:carocart/User/OnBoarding.dart';
 import 'package:carocart/User/SignUp.dart';
 import 'package:carocart/Utils/HexColor.dart';
+import 'package:carocart/Utils/ResetPassword.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -221,10 +222,12 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              // Navigator.push(
-                              //     context,
-                              //     MaterialPageRoute(
-                              //         builder: (context) => ResetPassword()));
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ResetPassword(),
+                                ),
+                              );
                             },
                             child: const Text(
                               'Reset Password',

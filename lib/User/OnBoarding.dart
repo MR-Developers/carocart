@@ -38,13 +38,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      // Navigate to your next screen here
-      Navigator.pushReplacementNamed(context, '/login');
+      print("Completed");
     }
   }
 
   void _skip() {
-    Navigator.pushReplacementNamed(context, '/login');
+    _pageController.animateToPage(
+      _pages.length - 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
