@@ -3,6 +3,7 @@ import 'package:carocart/User/Login.dart';
 import 'package:carocart/Utils/HexColor.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -46,7 +47,7 @@ class _SignUpPageState extends State<SignUpPage> {
         "email": _email.text.trim(),
         "password": _password.text.trim(),
         "phoneNumber": _phone.text.trim(),
-        "dob": _dob.text.trim(), // must be in YYYY-MM-DD format
+        "dob": _dob.text.trim(),
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -126,18 +127,15 @@ class _SignUpPageState extends State<SignUpPage> {
                           Icons.person_outline,
                         ),
                         _buildTextField(_phone, "Phone Number", Icons.phone),
-                        _buildTextField(
+                        _buildDatePickerField(
                           _dob,
-                          "Date of Birth (YYYY-MM-DD)",
+                          "Date of Birth",
                           Icons.calendar_today,
                         ),
-
                         _buildNextButton(width, "Next", () {
                           setState(() => currentStep = 2);
                         }),
                       ],
-
-                      /// Step 2 → Credentials
                       if (currentStep == 2) ...[
                         const Align(
                           alignment: Alignment.centerLeft,
@@ -252,6 +250,36 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDatePickerField(
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+      child: TextField(
+        controller: controller,
+        readOnly: true,
+        decoration: InputDecoration(hintText: hint, prefixIcon: Icon(icon)),
+        onTap: () async {
+          FocusScope.of(context).requestFocus(FocusNode());
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime(2000),
+            firstDate: DateTime(1900),
+            lastDate: DateTime.now(),
+          );
+          if (pickedDate != null) {
+            String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+            setState(() {
+              controller.text = formattedDate;
+            });
+          }
+        },
       ),
     );
   }

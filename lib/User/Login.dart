@@ -1,8 +1,11 @@
+import 'package:carocart/Apis/user_api.dart';
 import 'package:carocart/User/OnBoarding.dart';
 import 'package:carocart/User/SignUp.dart';
+import 'package:carocart/User/UserHome.dart';
 import 'package:carocart/Utils/HexColor.dart';
 import 'package:carocart/Utils/ResetPassword.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   bool passwordvisible = true;
   TextEditingController _email = TextEditingController();
   TextEditingController _password = TextEditingController();
+  final UserApi _userApi = UserApi();
   bool isLoading = false;
   @override
   Widget build(BuildContext context) {
@@ -90,14 +94,45 @@ class _LoginPageState extends State<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => OnboardingScreen(),
-                        ),
-                      );
+                    onTap: () async {
+                      setState(() => isLoading = true);
+                      try {
+                        final response = await _userApi.login(
+                          _email.text.trim(),
+                          _password.text.trim(),
+                        );
+
+                        if (response.statusCode == 200) {
+                          final token = response.data;
+                          // TODO: store token in SharedPreferences (so user stays logged in)
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString("auth_token", token);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Login successful!")),
+                          );
+
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => UserHome()),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Login failed: ${response.data}"),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        print(e);
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+                      } finally {
+                        setState(() => isLoading = false);
+                      }
                     },
+
                     child: Padding(
                       padding: const EdgeInsets.only(left: 30.0, right: 30),
                       child: Container(

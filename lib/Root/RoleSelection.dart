@@ -1,4 +1,5 @@
 import 'package:carocart/User/Login.dart';
+import 'package:carocart/User/OnBoarding.dart';
 import 'package:flutter/material.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
@@ -48,7 +49,7 @@ class RoleSelectionScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => LoginPage(),
+                              builder: (context) => OnboardingScreen(),
                             ),
                           );
                         },

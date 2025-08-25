@@ -10,6 +10,7 @@ class UserApi {
           baseUrl: "$_defaultBaseUrl/users",
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
+          contentType: Headers.jsonContentType,
           headers: token != null ? {"Authorization": "Bearer $token"} : {},
         ),
       );
