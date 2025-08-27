@@ -1,24 +1,68 @@
+import 'package:carocart/Utils/VendorCard.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 
-// Mock services (replace with real HTTP calls)
+// Dio client setup
+class ApiClient {
+  static final Dio dio = Dio(
+    BaseOptions(
+      baseUrl:
+          "http://10.0.2.2:8080", // Android Emulator (use your IP if testing on device)
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      headers: {"Content-Type": "application/json"},
+    ),
+  );
+}
+
+// API services
 Future<List<Map<String, dynamic>>> getNearbyVendors({
   required String type,
   required double lat,
   required double lng,
+  int radius = 10,
 }) async {
-  return [
-    {"id": 1, "name": "$type Vendor 1", "city": "Hyderabad"},
-    {"id": 2, "name": "$type Vendor 2", "city": "Hyderabad"},
-  ];
+  try {
+    final response = await ApiClient.dio.get(
+      "/vendors/nearby",
+      queryParameters: {
+        "type": type,
+        "lat": lat,
+        "lng": lng,
+        "radiusKm": radius,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List data = response.data;
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception("Failed to load vendors: ${response.statusCode}");
+    }
+  } on DioException catch (e) {
+    throw Exception("Dio error: ${e.message}");
+  }
 }
 
 Future<List<Map<String, dynamic>>> getSubCategoriesByVendorIds(
   List<int> vendorIds,
 ) async {
-  return [
-    {"id": 101, "name": "Biryani", "imageUrl": null},
-    {"id": 102, "name": "Snacks", "imageUrl": null},
-  ];
+  try {
+    final queryParams = vendorIds.map((id) => "vendorIds=$id").join("&");
+
+    final response = await ApiClient.dio.get(
+      "/categories/vendor-subcategories?$queryParams",
+    );
+
+    if (response.statusCode == 200) {
+      final List data = response.data;
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception("Failed to load subcategories: ${response.statusCode}");
+    }
+  } on DioException catch (e) {
+    throw Exception("Dio error: ${e.message}");
+  }
 }
 
 class UserHome extends StatefulWidget {
@@ -36,9 +80,8 @@ class _UserHomeState extends State<UserHome> {
   bool isLoadingVendors = false;
   bool isLoadingSubs = false;
 
-  double? lat = 17.3850; // mock location
-  double? lng = 78.4867;
-  String locationDisplay = "Hyderabad";
+  double? lat = 18.41011;
+  double? lng = 83.902951;
 
   @override
   void initState() {
@@ -93,19 +136,47 @@ class _UserHomeState extends State<UserHome> {
 
   Widget _buildTabButton(String type, int count, IconData icon) {
     final isActive = selectedTab == type;
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isActive ? Colors.green : Colors.grey[200],
-        foregroundColor: isActive ? Colors.white : Colors.black,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() => selectedTab = type);
+          _fetchVendorsAndSubCats();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.green : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              if (isActive)
+                BoxShadow(
+                  color: Colors.green.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+            ],
+            border: Border.all(
+              color: isActive ? Colors.green : Colors.grey.shade300,
+              width: 1.2,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: isActive ? Colors.white : Colors.black54),
+              const SizedBox(height: 4),
+              Text(
+                "$type ($count)",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isActive ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      onPressed: () {
-        setState(() {
-          selectedTab = type;
-        });
-        _fetchVendorsAndSubCats();
-      },
-      icon: Icon(icon),
-      label: Text("$type ($count)"),
     );
   }
 
@@ -114,18 +185,21 @@ class _UserHomeState extends State<UserHome> {
     final vendors = selectedTab == "FOOD" ? foodVendors : groceryVendors;
 
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text("CaroCart - $locationDisplay"),
+        title: const Text("CaroCart"),
         backgroundColor: Colors.green,
+        elevation: 4,
+        automaticallyImplyLeading: false,
       ),
       body: lat == null || lng == null
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.location_on, size: 50, color: Colors.red),
-                  const SizedBox(height: 8),
-                  const Text("Choose your location to view vendors"),
+                children: const [
+                  Icon(Icons.location_on, size: 50, color: Colors.red),
+                  SizedBox(height: 8),
+                  Text("Choose your location to view vendors"),
                 ],
               ),
             )
@@ -136,9 +210,8 @@ class _UserHomeState extends State<UserHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Food / Grocery Switch
+                  // ---- Tabs ----
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildTabButton(
                         "FOOD",
@@ -154,7 +227,7 @@ class _UserHomeState extends State<UserHome> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Subcategories
+                  // ---- Subcategories ----
                   if (subCategories.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,44 +242,114 @@ class _UserHomeState extends State<UserHome> {
                         const SizedBox(height: 12),
                         isLoadingSubs
                             ? const Center(child: CircularProgressIndicator())
-                            : Wrap(
-                                spacing: 12,
-                                children: subCategories
-                                    .map(
-                                      (sub) => Chip(label: Text(sub["name"])),
-                                    )
-                                    .toList(),
+                            : SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: subCategories.map((sub) {
+                                    final name = sub["name"] ?? "";
+                                    final imageUrl = sub["imageUrl"];
+
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 16.0,
+                                      ),
+                                      child: InkWell(
+                                        onTap: () {
+                                          print("Tapped subcategory: $name");
+                                        },
+                                        child: Column(
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.1),
+                                                    blurRadius: 6,
+                                                    offset: const Offset(0, 3),
+                                                  ),
+                                                ],
+                                              ),
+                                              child: CircleAvatar(
+                                                radius: 32,
+                                                backgroundColor:
+                                                    Colors.grey[200],
+                                                backgroundImage:
+                                                    (imageUrl != null &&
+                                                        imageUrl.isNotEmpty)
+                                                    ? NetworkImage(imageUrl)
+                                                    : null,
+                                                child:
+                                                    (imageUrl == null ||
+                                                        imageUrl.isEmpty)
+                                                    ? Text(
+                                                        name.isNotEmpty
+                                                            ? name[0]
+                                                                  .toUpperCase()
+                                                            : "?",
+                                                        style: const TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Colors.black54,
+                                                        ),
+                                                      )
+                                                    : null,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            SizedBox(
+                                              width: 80,
+                                              child: Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                       ],
                     ),
 
                   const SizedBox(height: 20),
 
-                  // Vendors List
+                  // ---- Vendors List ----
                   Text(
                     selectedTab == "FOOD"
-                        ? "🍱 Restaurants in $locationDisplay"
-                        : "🛒 Grocery Stores in $locationDisplay",
+                        ? "🍱 Restaurants near you"
+                        : "🛒 Grocery Stores near you",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
+
                   vendors.isEmpty
                       ? const Text("No vendors found nearby.")
-                      : Column(
-                          children: vendors
-                              .map(
-                                (v) => Card(
-                                  child: ListTile(
-                                    leading: const Icon(Icons.store),
-                                    title: Text(v["name"]),
-                                    subtitle: Text(v["city"] ?? ""),
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: vendors.length,
+                          itemBuilder: (context, index) {
+                            final v = vendors[index];
+                            return VendorCard(
+                              vendor: v,
+                              onTap: () {
+                                print("Navigate to vendor ${v["id"]}");
+                              },
+                            );
+                          },
                         ),
                 ],
               ),

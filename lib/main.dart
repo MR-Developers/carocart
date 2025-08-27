@@ -21,7 +21,16 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: const FlashScreen(),
+      initialRoute: "/flash",
+      routes: {
+        "/flash": (context) => const FlashScreen(),
+        "/": (context) => const UserHome(),
+        "/login": (context) => const LoginPage(),
+        "/role": (context) => const RoleSelectionScreen(),
+        // "/cart": (context) => const CartScreen(),
+        // "/vendors/login": (context) => const SellerLoginScreen(),
+        // "/account": (context) => const ProfileScreen(),
+      },
     );
   }
 }
@@ -44,36 +53,25 @@ class _FlashScreenState extends State<FlashScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("auth_token");
     print("Token: $token");
+
     await Future.delayed(const Duration(seconds: 3));
+
     if (token != null && token.isNotEmpty) {
       if (!JwtDecoder.isExpired(token)) {
         Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
         String role = decodedToken["role"] ?? "";
         if (role == "USER") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const UserHome()),
-          );
+          Navigator.pushReplacementNamed(context, "/");
         } else {
           prefs.remove("auth_token");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginPage()),
-          );
+          Navigator.pushReplacementNamed(context, "/login");
         }
       } else {
         prefs.remove("auth_token");
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-        );
+        Navigator.pushReplacementNamed(context, "/login");
       }
     } else {
-      // No token → go to role selection
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
-      );
+      Navigator.pushReplacementNamed(context, "/role");
     }
   }
 
