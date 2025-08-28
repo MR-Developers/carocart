@@ -62,10 +62,9 @@ class VendorCard extends StatelessWidget {
     return GestureDetector(
       onTap: open ? onTap : null,
       child: Opacity(
-        opacity: open ? 1.0 : 0.8, // slightly faded if closed
+        opacity: open ? 1.0 : 0.8,
         child: Stack(
           children: [
-            // --- Vendor Card (everything you already have) ---
             Container(
               decoration: BoxDecoration(
                 color: open ? Colors.white : Colors.grey[200],
@@ -80,14 +79,14 @@ class VendorCard extends StatelessWidget {
                   ),
                 ],
                 border: Border.all(
-                  color: open ? Colors.green : Colors.grey.shade400,
+                  color: open ? Colors.black12 : Colors.grey.shade400,
                 ),
               ),
               margin: const EdgeInsets.all(8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- Image / Placeholder ---
+                  //Image / Placeholder
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(12),
@@ -138,7 +137,7 @@ class VendorCard extends StatelessWidget {
                     ),
                   ),
 
-                  // --- Vendor Details ---
+                  //Vendor Details
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -203,7 +202,7 @@ class VendorCard extends StatelessWidget {
               ),
             ),
 
-            // --- Closed Overlay ---
+            //Closed Overlay
             if (!open)
               Positioned.fill(
                 child: Center(

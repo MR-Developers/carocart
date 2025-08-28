@@ -1,4 +1,5 @@
 import 'package:carocart/Apis/user_api.dart';
+import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/OnBoarding.dart';
 import 'package:carocart/User/SignUp.dart';
 import 'package:carocart/User/UserHome.dart';
@@ -114,7 +115,9 @@ class _LoginPageState extends State<LoginPage> {
 
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => UserHome()),
+                            MaterialPageRoute(
+                              builder: (context) => CategorySelectionPage(),
+                            ),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

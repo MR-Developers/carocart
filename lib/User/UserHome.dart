@@ -1,11 +1,13 @@
 import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Utils/AppBar.dart';
+import 'package:carocart/Utils/LocationPicker.dart';
 import 'package:carocart/Utils/VendorCard.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
 class UserHome extends StatefulWidget {
-  const UserHome({super.key});
+  final String initialTab;
+  const UserHome({super.key, this.initialTab = "FOOD"});
 
   @override
   State<UserHome> createState() => _UserHomeState();
@@ -18,12 +20,13 @@ class _UserHomeState extends State<UserHome> {
   List<Map<String, dynamic>> subCategories = [];
   bool isLoadingVendors = false;
   bool isLoadingSubs = false;
-
+  String? selectedLocation;
   double? lat = 18.41011;
   double? lng = 83.902951;
 
   @override
   void initState() {
+    selectedTab = widget.initialTab;
     super.initState();
     _fetchVendorsAndSubCats();
   }
@@ -141,7 +144,30 @@ class _UserHomeState extends State<UserHome> {
         onProfileTap: () {
           Navigator.pushNamed(context, "/profile");
         },
+
+        onLocationTap: () async {
+          var result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LocationPicker(
+                apiKey: "AIzaSyAJ0oDKBoCOF6cOEttl3Yf8QU8gFRrI4FU",
+              ),
+            ),
+          );
+
+          if (result != null) {
+            setState(() {
+              selectedLocation = result["description"];
+              lat = result["lat"];
+              lng = result["lng"];
+            });
+
+            // refresh vendors with new coordinates
+            _fetchVendorsAndSubCats();
+          }
+        },
       ),
+
       body: lat == null || lng == null
           ? Center(
               child: Column(
@@ -160,30 +186,13 @@ class _UserHomeState extends State<UserHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ---- Tabs ----
-                  Row(
-                    children: [
-                      _buildTabButton(
-                        "FOOD",
-                        foodVendors.length,
-                        Icons.restaurant,
-                      ),
-                      _buildTabButton(
-                        "GROCERY",
-                        groceryVendors.length,
-                        Icons.store,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ---- Subcategories ----
+                  //Subcategories
                   if (subCategories.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Browse by category",
+                          "Categories",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -273,11 +282,11 @@ class _UserHomeState extends State<UserHome> {
 
                   const SizedBox(height: 20),
 
-                  // ---- Vendors List ----
+                  //Vendors List
                   Text(
                     selectedTab == "FOOD"
-                        ? "🍱 Restaurants near you"
-                        : "🛒 Grocery Stores near you",
+                        ? "Featured Restaurants"
+                        : "Featured Grocery Stores",
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,

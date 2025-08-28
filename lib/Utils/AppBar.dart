@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_place/google_place.dart';
 
 class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
   final int cartCount;
@@ -6,6 +7,7 @@ class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
   final Function()? onLoginTap;
   final Function()? onSellerTap;
   final Function()? onProfileTap;
+  final Function()? onLocationTap; // 👈 added callback
 
   const AppNavbar({
     super.key,
@@ -14,6 +16,7 @@ class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
     this.onLoginTap,
     this.onSellerTap,
     this.onProfileTap,
+    this.onLocationTap, // 👈 init
   });
 
   @override
@@ -37,35 +40,17 @@ class _AppNavbarState extends State<AppNavbar> {
         padding: const EdgeInsets.only(left: 8.0),
         child: Row(
           children: [
+            // Location
             InkWell(
-              onTap: () {
-                Navigator.pushNamed(context, "/");
-              },
+              onTap: widget.onLocationTap, // 👈 notify parent
               child: Row(
-                children: [
-                  Image.asset("assets/images/AppIcon.jpg", height: 40),
-                  const SizedBox(width: 8),
+                children: const [
+                  Icon(Icons.location_on, color: Colors.green, size: 20),
+                  Icon(Icons.keyboard_arrow_down, size: 20),
                 ],
               ),
             ),
             const Spacer(),
-
-            // Location
-            InkWell(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Open location selector")),
-                );
-              },
-              child: Row(
-                children: [
-                  const Icon(Icons.location_on, color: Colors.green, size: 20),
-                  const Icon(Icons.keyboard_arrow_down, size: 20),
-                ],
-              ),
-            ),
-
-            Row(children: [const Icon(Icons.search, color: Colors.grey)]),
             // Cart
             Padding(
               padding: const EdgeInsets.only(right: 8.0),

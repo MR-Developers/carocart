@@ -7,7 +7,7 @@ class UserApi {
   UserApi({String? token})
     : _dio = Dio(
         BaseOptions(
-          baseUrl: "${ApiConstants.baseUrl}/users",
+          baseUrl: "${ApiConstants.baseUrl}:8081/users",
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
           contentType: Headers.jsonContentType,

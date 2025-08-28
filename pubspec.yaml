@@ -39,6 +39,9 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.5.3
   jwt_decoder: ^2.0.1
+  google_place: ^0.4.7
+  google_maps_flutter: ^2.12.3
+  location: ^8.0.1
 
 dev_dependencies:
   flutter_test:

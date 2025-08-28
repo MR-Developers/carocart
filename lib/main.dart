@@ -1,4 +1,5 @@
 import 'package:carocart/Root/RoleSelection.dart';
+import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/Login.dart';
 import 'package:carocart/User/UserHome.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       initialRoute: "/flash",
       routes: {
         "/flash": (context) => const FlashScreen(),
-        "/": (context) => const UserHome(),
+        "/": (context) => const CategorySelectionPage(),
         "/login": (context) => const LoginPage(),
         "/role": (context) => const RoleSelectionScreen(),
         "/userhome": (context) => const UserHome(),
