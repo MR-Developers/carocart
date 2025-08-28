@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       title: 'CaroCart',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         scaffoldBackgroundColor: Colors.white,
       ),
       initialRoute: "/flash",
@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
         "/": (context) => const UserHome(),
         "/login": (context) => const LoginPage(),
         "/role": (context) => const RoleSelectionScreen(),
+        "/userhome": (context) => const UserHome(),
         // "/cart": (context) => const CartScreen(),
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),

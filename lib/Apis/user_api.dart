@@ -1,13 +1,13 @@
+import 'package:carocart/Apis/constants.dart';
 import 'package:dio/dio.dart';
 
 class UserApi {
   final Dio _dio;
-  static const String _defaultBaseUrl = "http://10.0.2.2:8081";
 
   UserApi({String? token})
     : _dio = Dio(
         BaseOptions(
-          baseUrl: "$_defaultBaseUrl/users",
+          baseUrl: "${ApiConstants.baseUrl}/users",
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
           contentType: Headers.jsonContentType,

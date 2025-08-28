@@ -1,62 +1,64 @@
+// Dio client setup
 import 'package:dio/dio.dart';
+import 'package:carocart/Apis/constants.dart';
 
-class HomeApi {
-  static const String baseUrl = "http://10.0.2.2:8081";
-
-  static final Dio _dio = Dio(
+class ApiClient {
+  static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: "${ApiConstants.baseUrl}:8080",
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {"Content-Type": "application/json"},
     ),
   );
+}
 
-  /// Get nearby vendors (Food / Grocery)
-  static Future<List<dynamic>> getNearbyVendors({
-    required String type,
-    required double lat,
-    required double lng,
-    int radius = 10,
-  }) async {
-    try {
-      final response = await _dio.get(
-        "/vendors/nearby",
-        queryParameters: {
-          "type": type,
-          "lat": lat,
-          "lng": lng,
-          "radius": radius,
-        },
-      );
+// API services
+Future<List<Map<String, dynamic>>> getNearbyVendors({
+  required String type,
+  required double lat,
+  required double lng,
+  int radius = 10,
+}) async {
+  try {
+    final response = await ApiClient.dio.get(
+      "/vendors/nearby",
+      queryParameters: {
+        "type": type,
+        "lat": lat,
+        "lng": lng,
+        "radiusKm": radius,
+      },
+    );
 
-      if (response.statusCode == 200) {
-        return response.data['data'] ?? [];
-      } else {
-        throw Exception("Failed to load vendors");
-      }
-    } on DioException catch (e) {
-      throw Exception("API Error: ${e.message}");
+    if (response.statusCode == 200) {
+      final List data = response.data;
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception("Failed to load vendors: ${response.statusCode}");
     }
+  } on DioException catch (e) {
+    throw Exception("Dio error: ${e.message}");
   }
+}
 
-  /// Get subcategories by vendor IDs
-  static Future<List<dynamic>> getSubCategoriesByVendorIds(
-    List<String> vendorIds,
-  ) async {
-    try {
-      final response = await _dio.post(
-        "/categories/subcategories",
-        data: {"vendorIds": vendorIds},
-      );
+Future<List<Map<String, dynamic>>> getSubCategoriesByVendorIds(
+  List<int> vendorIds,
+) async {
+  try {
+    final queryParams = vendorIds.map((id) => "vendorIds=$id").join("&");
 
-      if (response.statusCode == 200) {
-        return response.data['data'] ?? [];
-      } else {
-        throw Exception("Failed to load subcategories");
-      }
-    } on DioException catch (e) {
-      throw Exception("API Error: ${e.message}");
+    final response = await ApiClient.dio.get(
+      "/categories/vendor-subcategories?$queryParams",
+    );
+
+    if (response.statusCode == 200) {
+      final List data = response.data;
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception("Failed to load subcategories: ${response.statusCode}");
     }
+  } on DioException catch (e) {
+    throw Exception("Dio error: ${e.message}");
   }
 }
