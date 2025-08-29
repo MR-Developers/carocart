@@ -46,20 +46,26 @@ class _LocationPickerState extends State<LocationPicker> {
   Future<void> _handlePlaceTap(AutocompletePrediction p) async {
     if (p.placeId == null) return;
 
-    var details = await googlePlace.details.get(p.placeId!);
-    if (details != null && details.result != null) {
-      var loc = details.result!.geometry?.location;
-      if (loc != null) {
-        setState(() {
-          selectedLatLng = LatLng(loc.lat!, loc.lng!);
-          predictions = [];
-          controller.text = p.description ?? "";
-        });
+    try {
+      var details = await googlePlace.details.get(p.placeId!);
+      if (details != null && details.result != null) {
+        var gLoc = details.result!.geometry?.location;
+        if (gLoc?.lat != null && gLoc?.lng != null) {
+          setState(() {
+            selectedLatLng = LatLng(gLoc!.lat!, gLoc.lng!);
+            predictions = [];
+            controller.text = p.description ?? "";
+          });
 
-        mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(selectedLatLng!, 15),
-        );
+          mapController?.animateCamera(
+            CameraUpdate.newLatLngZoom(selectedLatLng!, 15),
+          );
+        } else {
+          _showError("No coordinates found for this place.");
+        }
       }
+    } catch (e) {
+      _showError("Failed to load place details.");
     }
   }
 
@@ -79,12 +85,17 @@ class _LocationPickerState extends State<LocationPicker> {
     }
 
     loc.LocationData userLocation = await location.getLocation();
+    if (userLocation.latitude == null || userLocation.longitude == null) {
+      _showError("Unable to fetch current location.");
+      return;
+    }
+
     LatLng currentLatLng = LatLng(
       userLocation.latitude!,
       userLocation.longitude!,
     );
 
-    final result = await Navigator.push<LatLng>(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) =>
@@ -93,15 +104,17 @@ class _LocationPickerState extends State<LocationPicker> {
     );
 
     if (result != null) {
-      setState(() {
-        selectedLatLng = result;
-      });
       Navigator.pop(context, {
-        "lat": selectedLatLng!.latitude,
-        "lng": selectedLatLng!.longitude,
-        "description": controller.text,
+        "lat": result["lat"],
+        "lng": result["lng"],
+        "description": result["description"],
       });
     }
+  }
+
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -110,21 +123,62 @@ class _LocationPickerState extends State<LocationPicker> {
       appBar: AppBar(title: const Text("Select Location")),
       body: Column(
         children: [
+          // Search box
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: controller,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Search location...",
-                border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.map),
-                  onPressed: _openMap,
-                ),
+                border: OutlineInputBorder(),
               ),
               onChanged: autoCompleteSearch,
             ),
           ),
+
+          // Open Map Button (centered below search field)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 0.0),
+            child: Center(
+              child: InkWell(
+                onTap: _openMap,
+                borderRadius: BorderRadius.circular(30),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.map, size: 20, color: Colors.black87),
+                        SizedBox(width: 8),
+                        Text(
+                          "Open Map",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Predictions list
           Expanded(
             child: ListView.builder(
               itemCount: predictions.length,
@@ -137,21 +191,53 @@ class _LocationPickerState extends State<LocationPicker> {
               },
             ),
           ),
+
+          // Confirm button (bottom center like a container)
+          if (selectedLatLng != null)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context, {
+                    "lat": selectedLatLng!.latitude,
+                    "lng": selectedLatLng!.longitude,
+                    "description": controller.text,
+                  });
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 6,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text(
+                        "Confirm Location",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
-      floatingActionButton: selectedLatLng != null
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.pop(context, {
-                  "lat": selectedLatLng!.latitude,
-                  "lng": selectedLatLng!.longitude,
-                  "description": controller.text,
-                });
-              },
-              label: const Text("Confirm"),
-              icon: const Icon(Icons.check),
-            )
-          : null,
     );
   }
 }
@@ -199,26 +285,41 @@ class _MapPageState extends State<MapPage> {
   Future<void> _handlePredictionTap(AutocompletePrediction p) async {
     if (p.placeId == null) return;
 
-    var details = await googlePlace.details.get(p.placeId!);
-    if (details != null && details.result != null) {
-      var loc = details.result!.geometry?.location;
-      if (loc != null) {
-        LatLng newPos = LatLng(loc.lat!, loc.lng!);
-        setState(() {
-          selectedLatLng = newPos;
-          predictions = [];
-          searchController.text = p.description ?? "";
-        });
+    try {
+      var details = await googlePlace.details.get(p.placeId!);
+      if (details != null && details.result != null) {
+        var gLoc = details.result!.geometry?.location;
+        if (gLoc?.lat != null && gLoc?.lng != null) {
+          LatLng newPos = LatLng(gLoc!.lat!, gLoc.lng!);
+          setState(() {
+            selectedLatLng = newPos;
+            predictions = [];
+            searchController.text = p.description ?? "";
+          });
 
-        mapController?.animateCamera(CameraUpdate.newLatLngZoom(newPos, 15));
+          mapController?.animateCamera(CameraUpdate.newLatLngZoom(newPos, 15));
+        } else {
+          _showError("No coordinates found for this place.");
+        }
       }
+    } catch (e) {
+      _showError("Failed to load place details.");
     }
+  }
+
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Pick Location")),
+      appBar: AppBar(
+        title: const Text("Pick Location"),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
+      ),
       body: Stack(
         children: [
           GoogleMap(
@@ -295,16 +396,56 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
           ),
+          // Confirm button
+          // Confirm button
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: GestureDetector(
+              onTap: () {
+                if (selectedLatLng != null) {
+                  Navigator.pop(context, {
+                    "lat": selectedLatLng!.latitude,
+                    "lng": selectedLatLng!.longitude,
+                    "description": searchController.text.isNotEmpty
+                        ? searchController.text
+                        : "Dropped Pin",
+                  });
+                }
+              },
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade700,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      "Confirm Location",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (selectedLatLng != null) {
-            Navigator.pop(context, selectedLatLng);
-          }
-        },
-        label: const Text("Confirm"),
-        icon: const Icon(Icons.check),
       ),
     );
   }

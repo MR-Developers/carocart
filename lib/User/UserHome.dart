@@ -1,9 +1,9 @@
 import 'package:carocart/Apis/home_api.dart';
+import 'package:carocart/Apis/user_api.dart';
 import 'package:carocart/Utils/AppBar.dart';
 import 'package:carocart/Utils/LocationPicker.dart';
 import 'package:carocart/Utils/VendorCard.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 
 class UserHome extends StatefulWidget {
   final String initialTab;
@@ -18,11 +18,13 @@ class _UserHomeState extends State<UserHome> {
   List<Map<String, dynamic>> foodVendors = [];
   List<Map<String, dynamic>> groceryVendors = [];
   List<Map<String, dynamic>> subCategories = [];
+  List<Map<String, dynamic>> filteredVendors = []; // filtered by subcategory
   bool isLoadingVendors = false;
   bool isLoadingSubs = false;
   String? selectedLocation;
   double? lat = 18.41011;
   double? lng = 83.902951;
+  int? selectedSubCategoryId;
 
   @override
   void initState() {
@@ -65,71 +67,78 @@ class _UserHomeState extends State<UserHome> {
       } else {
         setState(() => subCategories = []);
       }
+
+      // set default vendors
+      _applyFilter();
     } catch (e) {
       setState(() {
         foodVendors = [];
         groceryVendors = [];
         subCategories = [];
+        filteredVendors = [];
       });
     }
 
     setState(() => isLoadingVendors = false);
   }
 
-  Widget _buildTabButton(String type, int count, IconData icon) {
-    final isActive = selectedTab == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() => selectedTab = type);
-          _fetchVendorsAndSubCats();
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          margin: const EdgeInsets.symmetric(horizontal: 6),
-          decoration: BoxDecoration(
-            color: isActive ? Colors.green : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              if (isActive)
-                BoxShadow(
-                  color: Colors.green.withOpacity(0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-            ],
-            border: Border.all(
-              color: isActive ? Colors.green : Colors.grey.shade300,
-              width: 1.2,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: isActive ? Colors.white : Colors.black54),
-              const SizedBox(height: 4),
-              Text(
-                "$type ($count)",
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: isActive ? Colors.white : Colors.black87,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  Future<void> _filterBySubCategory(int subCategoryId) async {
+    if (lat == null || lng == null) return;
+
+    // ✅ toggle selection
+    if (selectedSubCategoryId == subCategoryId) {
+      setState(() {
+        selectedSubCategoryId = null;
+        // Reset to all vendors for the current tab
+        filteredVendors = selectedTab == "FOOD" ? foodVendors : groceryVendors;
+      });
+      return;
+    }
+
+    setState(() {
+      selectedSubCategoryId = subCategoryId;
+      isLoadingVendors = true;
+    });
+
+    try {
+      final vendors = await getNearbyVendorsBySubCategory(
+        subCategoryId: subCategoryId.toString(),
+        lat: lat!,
+        lng: lng!,
+      );
+
+      setState(() {
+        filteredVendors = vendors;
+      });
+    } catch (e) {
+      setState(() {
+        filteredVendors = [];
+      });
+    }
+
+    setState(() => isLoadingVendors = false);
+  }
+
+  void _applyFilter() {
+    final base = selectedTab == "FOOD" ? foodVendors : groceryVendors;
+    if (selectedSubCategoryId == null) {
+      setState(() {
+        filteredVendors = base;
+      });
+    } else {
+      _filterBySubCategory(selectedSubCategoryId!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final vendors = selectedTab == "FOOD" ? foodVendors : groceryVendors;
+    final vendors = filteredVendors;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppNavbar(
         cartCount: 3,
+        selectedLocation: selectedLocation,
         onCartTap: () {
           ScaffoldMessenger.of(
             context,
@@ -144,7 +153,6 @@ class _UserHomeState extends State<UserHome> {
         onProfileTap: () {
           Navigator.pushNamed(context, "/profile");
         },
-
         onLocationTap: () async {
           var result = await Navigator.push(
             context,
@@ -167,7 +175,6 @@ class _UserHomeState extends State<UserHome> {
           }
         },
       ),
-
       body: lat == null || lng == null
           ? Center(
               child: Column(
@@ -186,7 +193,7 @@ class _UserHomeState extends State<UserHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //Subcategories
+                  // Subcategories
                   if (subCategories.isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,8 +212,11 @@ class _UserHomeState extends State<UserHome> {
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
                                   children: subCategories.map((sub) {
+                                    final id = sub["id"];
                                     final name = sub["name"] ?? "";
                                     final imageUrl = sub["imageUrl"];
+                                    final isSelected =
+                                        id == selectedSubCategoryId;
 
                                     return Padding(
                                       padding: const EdgeInsets.only(
@@ -214,13 +224,20 @@ class _UserHomeState extends State<UserHome> {
                                       ),
                                       child: InkWell(
                                         onTap: () {
-                                          print("Tapped subcategory: $name");
+                                          _filterBySubCategory(id);
                                         },
                                         child: Column(
                                           children: [
                                             Container(
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
+                                                border: isSelected
+                                                    ? Border.all(
+                                                        color:
+                                                            Colors.deepPurple,
+                                                        width: 3,
+                                                      )
+                                                    : null,
                                                 boxShadow: [
                                                   BoxShadow(
                                                     color: Colors.black
@@ -262,9 +279,12 @@ class _UserHomeState extends State<UserHome> {
                                               width: 80,
                                               child: Text(
                                                 name,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w500,
+                                                  color: isSelected
+                                                      ? Colors.deepPurple
+                                                      : Colors.black,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
                                                 textAlign: TextAlign.center,
@@ -282,7 +302,7 @@ class _UserHomeState extends State<UserHome> {
 
                   const SizedBox(height: 20),
 
-                  //Vendors List
+                  // Vendors List
                   Text(
                     selectedTab == "FOOD"
                         ? "Featured Restaurants"
@@ -293,7 +313,6 @@ class _UserHomeState extends State<UserHome> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
                   vendors.isEmpty
                       ? const Text("No vendors found nearby.")
                       : ListView.builder(

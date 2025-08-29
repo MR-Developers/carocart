@@ -62,3 +62,28 @@ Future<List<Map<String, dynamic>>> getSubCategoriesByVendorIds(
     throw Exception("Dio error: ${e.message}");
   }
 }
+
+Future<List<Map<String, dynamic>>> getNearbyVendorsBySubCategory({
+  required String subCategoryId,
+  required double lat,
+  required double lng,
+  int radius = 10,
+}) async {
+  try {
+    final response = await ApiClient.dio.get(
+      "/categories/subcategory/$subCategoryId/vendors/nearby",
+      queryParameters: {"lat": lat, "lng": lng, "radiusKm": radius},
+    );
+
+    if (response.statusCode == 200) {
+      final List data = response.data;
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception(
+        "Failed to load vendors by subcategory: ${response.statusCode}",
+      );
+    }
+  } on DioException catch (e) {
+    throw Exception("Dio error: ${e.message}");
+  }
+}

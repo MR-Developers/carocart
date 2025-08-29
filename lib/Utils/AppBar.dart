@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_place/google_place.dart';
 
 class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
   final int cartCount;
+  final String? selectedLocation;
   final Function()? onCartTap;
   final Function()? onLoginTap;
   final Function()? onSellerTap;
@@ -12,6 +12,7 @@ class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
   const AppNavbar({
     super.key,
     this.cartCount = 0,
+    this.selectedLocation = "Your Location",
     this.onCartTap,
     this.onLoginTap,
     this.onSellerTap,
@@ -44,8 +45,16 @@ class _AppNavbarState extends State<AppNavbar> {
             InkWell(
               onTap: widget.onLocationTap, // 👈 notify parent
               child: Row(
-                children: const [
-                  Icon(Icons.location_on, color: Colors.green, size: 20),
+                children: [
+                  Icon(Icons.location_on, color: Colors.green, size: 32),
+                  Text(
+                    (widget.selectedLocation != null &&
+                            widget.selectedLocation!.length > 25)
+                        ? widget.selectedLocation!.substring(0, 25) + "..."
+                        : widget.selectedLocation ?? "",
+                    style: TextStyle(fontSize: 16),
+                  ),
+
                   Icon(Icons.keyboard_arrow_down, size: 20),
                 ],
               ),
@@ -58,7 +67,10 @@ class _AppNavbarState extends State<AppNavbar> {
                 alignment: Alignment.topRight,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined),
+                    icon: const Icon(
+                      Icons.shopping_bag_rounded,
+                      color: Colors.black54,
+                    ),
                     onPressed: widget.onCartTap,
                   ),
                   if (widget.cartCount > 0)
