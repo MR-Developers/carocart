@@ -2,7 +2,7 @@ import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/user_api.dart';
 import 'package:carocart/Utils/AppBar.dart';
 import 'package:carocart/Utils/LocationPicker.dart';
-import 'package:carocart/Utils/VendorCard.dart';
+import 'package:carocart/Utils/UserCards/VendorCard.dart';
 import 'package:flutter/material.dart';
 
 class UserHome extends StatefulWidget {
@@ -233,8 +233,7 @@ class _UserHomeState extends State<UserHome> {
                                                 shape: BoxShape.circle,
                                                 border: isSelected
                                                     ? Border.all(
-                                                        color:
-                                                            Colors.deepPurple,
+                                                        color: Colors.orange,
                                                         width: 3,
                                                       )
                                                     : null,
@@ -283,7 +282,7 @@ class _UserHomeState extends State<UserHome> {
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.w500,
                                                   color: isSelected
-                                                      ? Colors.deepPurple
+                                                      ? Colors.orange
                                                       : Colors.black,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,

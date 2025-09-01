@@ -16,6 +16,7 @@ class _LocationPickerState extends State<LocationPicker> {
   late GooglePlace googlePlace;
   List<AutocompletePrediction> predictions = [];
   final TextEditingController controller = TextEditingController();
+  bool _isLoading = false;
 
   GoogleMapController? mapController;
   LatLng? selectedLatLng;
@@ -70,23 +71,32 @@ class _LocationPickerState extends State<LocationPicker> {
   }
 
   Future<void> _openMap() async {
+    setState(() => _isLoading = true);
+
     loc.Location location = loc.Location();
 
     bool serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        setState(() => _isLoading = false);
+        return;
+      }
     }
 
     loc.PermissionStatus permissionGranted = await location.hasPermission();
     if (permissionGranted == loc.PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
-      if (permissionGranted != loc.PermissionStatus.granted) return;
+      if (permissionGranted != loc.PermissionStatus.granted) {
+        setState(() => _isLoading = false);
+        return;
+      }
     }
 
     loc.LocationData userLocation = await location.getLocation();
     if (userLocation.latitude == null || userLocation.longitude == null) {
       _showError("Unable to fetch current location.");
+      setState(() => _isLoading = false);
       return;
     }
 
@@ -94,6 +104,8 @@ class _LocationPickerState extends State<LocationPicker> {
       userLocation.latitude!,
       userLocation.longitude!,
     );
+
+    setState(() => _isLoading = false);
 
     final result = await Navigator.push(
       context,
@@ -120,121 +132,137 @@ class _LocationPickerState extends State<LocationPicker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Select Location")),
-      body: Column(
+      appBar: AppBar(
+        title: const Text("Select Location"),
+        backgroundColor: Colors.green.shade600,
+        foregroundColor: Colors.white,
+      ),
+      body: Stack(
         children: [
-          // Search box
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                hintText: "Search location...",
-                border: OutlineInputBorder(),
-              ),
-              onChanged: autoCompleteSearch,
-            ),
-          ),
-
-          // Open Map Button (centered below search field)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 0.0),
-            child: Center(
-              child: InkWell(
-                onTap: _openMap,
-                borderRadius: BorderRadius.circular(30),
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 8.0, right: 8),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(10),
-                      color: Colors.white,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.map, size: 20, color: Colors.black87),
-                        SizedBox(width: 8),
-                        Text(
-                          "Open Map",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
+          // your main content
+          Column(
+            children: [
+              // Search box
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    hintText: "Search location...",
+                    border: OutlineInputBorder(),
                   ),
+                  onChanged: autoCompleteSearch,
                 ),
               ),
-            ),
-          ),
 
-          // Predictions list
-          Expanded(
-            child: ListView.builder(
-              itemCount: predictions.length,
-              itemBuilder: (context, index) {
-                var p = predictions[index];
-                return ListTile(
-                  title: Text(p.description ?? ""),
-                  onTap: () => _handlePlaceTap(p),
-                );
-              },
-            ),
-          ),
-
-          // Confirm button (bottom center like a container)
-          if (selectedLatLng != null)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context, {
-                    "lat": selectedLatLng!.latitude,
-                    "lng": selectedLatLng!.longitude,
-                    "description": controller.text,
-                  });
-                },
-                child: Container(
-                  width: double.infinity,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 6,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.check, color: Colors.white),
-                      SizedBox(width: 8),
-                      Text(
-                        "Confirm Location",
-                        style: TextStyle(
+              // Open Map Button (centered below search field)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 0.0),
+                child: Center(
+                  child: InkWell(
+                    onTap: _openMap,
+                    borderRadius: BorderRadius.circular(30),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8.0, right: 8),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(10),
                           color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.map, size: 20, color: Colors.black87),
+                            SizedBox(width: 8),
+                            Text(
+                              "Open Map",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
+
+              // Predictions list
+              Expanded(
+                child: ListView.builder(
+                  itemCount: predictions.length,
+                  itemBuilder: (context, index) {
+                    var p = predictions[index];
+                    return ListTile(
+                      title: Text(p.description ?? ""),
+                      onTap: () => _handlePlaceTap(p),
+                    );
+                  },
+                ),
+              ),
+
+              // Confirm button
+              if (selectedLatLng != null)
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context, {
+                        "lat": selectedLatLng!.latitude,
+                        "lng": selectedLatLng!.longitude,
+                        "description": controller.text,
+                      });
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            "Confirm Location",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          // 🔥 Loader Overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black45,
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
@@ -396,7 +424,6 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
           ),
-          // Confirm button
           // Confirm button
           Positioned(
             bottom: 16,

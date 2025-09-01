@@ -2,6 +2,7 @@ import 'package:carocart/Root/RoleSelection.dart';
 import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/Login.dart';
 import 'package:carocart/User/UserHome.dart';
+import 'package:carocart/User/VendorsProductsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -29,6 +30,10 @@ class MyApp extends StatelessWidget {
         "/login": (context) => const LoginPage(),
         "/role": (context) => const RoleSelectionScreen(),
         "/userhome": (context) => const UserHome(),
+        "/vendorproducts": (context) {
+          final vendorId = ModalRoute.of(context)!.settings.arguments as int;
+          return VendorProductsPage(vendorId: vendorId);
+        },
         // "/cart": (context) => const CartScreen(),
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),

@@ -60,7 +60,13 @@ class VendorCard extends StatelessWidget {
     bool open = isVendorOpen(vendor);
 
     return GestureDetector(
-      onTap: open ? onTap : null,
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          "/vendorproducts",
+          arguments: vendor["id"],
+        );
+      },
       child: Opacity(
         opacity: open ? 1.0 : 0.8,
         child: Stack(
