@@ -1,4 +1,5 @@
 import 'package:carocart/User/OnBoarding.dart';
+import 'package:carocart/DeliveryPartner/DeliveryPartnerLoginScreen.dart';
 import 'package:flutter/material.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
@@ -59,7 +60,15 @@ class RoleSelectionScreen extends StatelessWidget {
                         imagePath: 'assets/images/DeliveryPartner.png',
                         title: "Delivery Partner",
                         subtitle: "I Want To Deliver Groceries",
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DeliveryPartnerLoginScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
