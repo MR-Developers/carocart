@@ -1,3 +1,4 @@
+import 'package:carocart/DeliveryPartner/DeliveryPartnerSignup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // ✅ Import flutter_svg
 
@@ -150,9 +151,7 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: Implement Login logic
-                        },
+                        onPressed: () {},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(vertical: 15),
@@ -163,6 +162,39 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                         child: const Text(
                           "Login",
                           style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // ✅ Signup Text
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const DeliveryPartnerSignup(), // ✅ Navigate
+                            ),
+                          );
+                        },
+                        child: const Text.rich(
+                          TextSpan(
+                            text: "No account? ",
+                            style: TextStyle(fontSize: 14),
+                            children: [
+                              TextSpan(
+                                text: "Sign Up",
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -182,7 +214,7 @@ class BottomCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    path.lineTo(0, size.height - 90);
+    path.lineTo(0, size.height - 50);
     path.quadraticBezierTo(
       size.width / 2,
       size.height,
@@ -196,4 +228,17 @@ class BottomCurveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+/// ✅ Registration Screen (Dummy)
+class RegistrationScreen extends StatelessWidget {
+  const RegistrationScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Registration")),
+      body: const Center(child: Text("Registration Page Content Here")),
+    );
+  }
 }
