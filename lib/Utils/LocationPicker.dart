@@ -1,3 +1,4 @@
+import 'package:carocart/Apis/address_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_place/google_place.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -21,10 +22,22 @@ class _LocationPickerState extends State<LocationPicker> {
   GoogleMapController? mapController;
   LatLng? selectedLatLng;
 
+  List<Map<String, dynamic>> myAddresses = []; // <-- list of saved addresses
+
   @override
   void initState() {
     super.initState();
     googlePlace = GooglePlace(widget.apiKey);
+    _loadAddresses();
+  }
+
+  Future<void> _loadAddresses() async {
+    final res = await AddressService.getMyAddresses(context);
+    if (mounted) {
+      setState(() {
+        myAddresses = res;
+      });
+    }
   }
 
   void autoCompleteSearch(String value) async {
@@ -46,65 +59,55 @@ class _LocationPickerState extends State<LocationPicker> {
 
   Future<void> _handlePlaceTap(AutocompletePrediction p) async {
     if (p.placeId == null) return;
-
     try {
       var details = await googlePlace.details.get(p.placeId!);
-      if (details != null && details.result != null) {
-        var gLoc = details.result!.geometry?.location;
-        if (gLoc?.lat != null && gLoc?.lng != null) {
-          setState(() {
-            selectedLatLng = LatLng(gLoc!.lat!, gLoc.lng!);
-            predictions = [];
-            controller.text = p.description ?? "";
-          });
-
-          mapController?.animateCamera(
-            CameraUpdate.newLatLngZoom(selectedLatLng!, 15),
-          );
-        } else {
-          _showError("No coordinates found for this place.");
-        }
+      if (details?.result?.geometry?.location != null) {
+        var loc = details!.result!.geometry!.location!;
+        setState(() {
+          selectedLatLng = LatLng(loc.lat!, loc.lng!);
+          predictions = [];
+          controller.text = p.description ?? "";
+        });
+        mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(selectedLatLng!, 15),
+        );
+      } else {
+        _showError("No coordinates found for this place.");
       }
     } catch (e) {
       _showError("Failed to load place details.");
     }
   }
 
-  Future<void> _openMap() async {
+  Future<void> _openMapAndAddAddress() async {
     setState(() => _isLoading = true);
 
-    loc.Location location = loc.Location();
+    final location = loc.Location();
 
     bool serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) {
-        setState(() => _isLoading = false);
-        return;
-      }
+    if (!serviceEnabled && !(await location.requestService())) {
+      setState(() => _isLoading = false);
+      return;
     }
 
     loc.PermissionStatus permissionGranted = await location.hasPermission();
-    if (permissionGranted == loc.PermissionStatus.denied) {
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != loc.PermissionStatus.granted) {
-        setState(() => _isLoading = false);
-        return;
-      }
+    if (permissionGranted == loc.PermissionStatus.denied &&
+        (await location.requestPermission()) != loc.PermissionStatus.granted) {
+      setState(() => _isLoading = false);
+      return;
     }
 
-    loc.LocationData userLocation = await location.getLocation();
+    final userLocation = await location.getLocation();
     if (userLocation.latitude == null || userLocation.longitude == null) {
       _showError("Unable to fetch current location.");
       setState(() => _isLoading = false);
       return;
     }
 
-    LatLng currentLatLng = LatLng(
+    final currentLatLng = LatLng(
       userLocation.latitude!,
       userLocation.longitude!,
     );
-
     setState(() => _isLoading = false);
 
     final result = await Navigator.push(
@@ -116,11 +119,23 @@ class _LocationPickerState extends State<LocationPicker> {
     );
 
     if (result != null) {
-      Navigator.pop(context, {
-        "lat": result["lat"],
-        "lng": result["lng"],
-        "description": result["description"],
-      });
+      final newAddress = await Navigator.push<Map<String, dynamic>>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddAddressPage(
+            lat: result["lat"],
+            lng: result["lng"],
+            description: result["description"],
+          ),
+        ),
+      );
+
+      if (newAddress != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Address added successfully!")),
+        );
+        _loadAddresses(); // refresh list
+      }
     }
   }
 
@@ -139,10 +154,8 @@ class _LocationPickerState extends State<LocationPicker> {
       ),
       body: Stack(
         children: [
-          // your main content
           Column(
             children: [
-              // Search box
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
@@ -155,21 +168,17 @@ class _LocationPickerState extends State<LocationPicker> {
                 ),
               ),
 
-              // Open Map Button (centered below search field)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 0.0),
                 child: Center(
                   child: InkWell(
-                    onTap: _openMap,
+                    onTap: _openMapAndAddAddress,
                     borderRadius: BorderRadius.circular(30),
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 8.0, right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade400),
                           borderRadius: BorderRadius.circular(10),
@@ -197,21 +206,66 @@ class _LocationPickerState extends State<LocationPicker> {
                 ),
               ),
 
-              // Predictions list
-              Expanded(
-                child: ListView.builder(
-                  itemCount: predictions.length,
-                  itemBuilder: (context, index) {
-                    var p = predictions[index];
-                    return ListTile(
-                      title: Text(p.description ?? ""),
-                      onTap: () => _handlePlaceTap(p),
-                    );
-                  },
+              // ✅ Your Addresses Section
+              if (myAddresses.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Your Addresses",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: myAddresses.length,
+                    itemBuilder: (context, index) {
+                      final address = myAddresses[index];
+                      return ListTile(
+                        title: Text(address["address"] ?? ""),
+                        subtitle: Text(address["type"] ?? ""),
+                        trailing: address["isDefault"] == true
+                            ? const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              )
+                            : null,
+                        onTap: () {
+                          Navigator.pop(context, {
+                            "lat": address["latitude"],
+                            "lng": address["longitude"],
+                            "description": address["address"],
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ] else
+                const SizedBox.shrink(),
 
-              // Confirm button
+              // Predictions list
+              if (predictions.isNotEmpty)
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: predictions.length,
+                    itemBuilder: (context, index) {
+                      var p = predictions[index];
+                      return ListTile(
+                        title: Text(p.description ?? ""),
+                        onTap: () => _handlePlaceTap(p),
+                      );
+                    },
+                  ),
+                ),
+
               if (selectedLatLng != null)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -258,7 +312,6 @@ class _LocationPickerState extends State<LocationPicker> {
             ],
           ),
 
-          // 🔥 Loader Overlay
           if (_isLoading)
             Container(
               color: Colors.black45,
@@ -473,6 +526,148 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class AddAddressPage extends StatefulWidget {
+  final double lat;
+  final double lng;
+  final String description;
+
+  const AddAddressPage({
+    super.key,
+    required this.lat,
+    required this.lng,
+    required this.description,
+  });
+
+  @override
+  State<AddAddressPage> createState() => _AddAddressPageState();
+}
+
+class _AddAddressPageState extends State<AddAddressPage> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController fullNameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController typeController = TextEditingController();
+  final TextEditingController instructionsController = TextEditingController();
+  bool isDefault = true;
+  bool _isSaving = false;
+
+  void _saveAddress() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSaving = true);
+
+    final addressData = {
+      "fullName": fullNameController.text,
+      "phoneNumber": phoneController.text,
+      "address": addressController.text,
+      "latitude": widget.lat,
+      "longitude": widget.lng,
+      "type": typeController.text,
+      "instructions": instructionsController.text,
+      "isDefault": isDefault,
+    };
+
+    final res = await AddressService.createAddress(context, addressData);
+
+    setState(() => _isSaving = false);
+
+    if (res != null) {
+      Navigator.pop(context, res); // return created address
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Address added successfully!")),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    addressController.text = widget.description;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Add New Address"),
+        backgroundColor: Colors.green.shade700,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: fullNameController,
+                decoration: const InputDecoration(labelText: "Full Name"),
+                validator: (v) => v!.isEmpty ? "Required" : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: "Phone Number"),
+                keyboardType: TextInputType.phone,
+                validator: (v) => v!.isEmpty ? "Required" : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: addressController,
+                decoration: const InputDecoration(labelText: "Full Address"),
+                validator: (v) => v!.isEmpty ? "Required" : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: typeController,
+                decoration: const InputDecoration(
+                  labelText: "Type (Home/Work)",
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: instructionsController,
+                decoration: const InputDecoration(labelText: "Instructions"),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Text("Set as default"),
+                  Checkbox(
+                    value: isDefault,
+                    onChanged: (v) => setState(() => isDefault = v!),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isSaving ? null : _saveAddress,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isSaving
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Save Address",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -140,9 +140,7 @@ class _UserHomeState extends State<UserHome> {
         cartCount: 3,
         selectedLocation: selectedLocation,
         onCartTap: () {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text("Cart clicked")));
+          Navigator.pushNamed(context, "/usercart");
         },
         onLoginTap: () {
           Navigator.pushNamed(context, "/login");

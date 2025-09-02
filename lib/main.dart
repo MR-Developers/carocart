@@ -1,6 +1,7 @@
 import 'package:carocart/Root/RoleSelection.dart';
 import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/Login.dart';
+import 'package:carocart/User/UserCart.dart';
 import 'package:carocart/User/UserHome.dart';
 import 'package:carocart/User/VendorsProductsPage.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
           final vendorId = ModalRoute.of(context)!.settings.arguments as int;
           return VendorProductsPage(vendorId: vendorId);
         },
-        // "/cart": (context) => const CartScreen(),
+        "/usercart": (context) => const UserCartPage(),
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),
       },
