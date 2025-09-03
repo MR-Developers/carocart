@@ -1,3 +1,4 @@
+import 'package:carocart/Apis/address_service.dart';
 import 'package:carocart/Apis/cart_service.dart';
 import 'package:carocart/Apis/product_service.dart';
 import 'package:carocart/Utils/delivery_fee.dart';
@@ -38,10 +39,6 @@ class _UserCartPageState extends State<UserCartPage> {
   double discount = 0.0;
   double deliveryFee = 0;
   bool deliveryAvailable = true;
-  final vendorLat = 28.7041; // Connaught Place, Delhi
-  final vendorLng = 77.1025;
-  final userLat = 28.5355; // Noida Sector 18
-  final userLng = 77.2730;
 
   double get totalPrice =>
       cartItems.fold(0, (sum, item) => sum + item.price * item.quantity);
@@ -65,13 +62,39 @@ class _UserCartPageState extends State<UserCartPage> {
     }
   }
 
-  void changeQuantity(CartItem item, int delta) {
+  void changeQuantity(CartItem item, int delta) async {
+    final newQuantity = (item.quantity + delta).clamp(0, 99);
+
     setState(() {
-      item.quantity = (item.quantity + delta).clamp(0, 99);
+      item.quantity = newQuantity;
       if (item.quantity == 0) {
         cartItems.removeWhere((ci) => ci.id == item.id);
       }
     });
+
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      if (newQuantity > 0) {
+        // 🔄 Update cart item in backend
+        await CartService.updateCartItem(int.parse(item.id), newQuantity);
+      } else {
+        // 🗑 Remove item from backend (set quantity = 0)
+
+        await CartService.updateCartItem(int.parse(item.id), 0);
+      }
+      // 🔔 Refresh global count for AppNavbar
+      await CartService.getCart();
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print("❌ Failed to update quantity: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update cart item")),
+      );
+    }
   }
 
   @override
@@ -81,38 +104,65 @@ class _UserCartPageState extends State<UserCartPage> {
   }
 
   Future<void> _fetchCart() async {
-    setState(() => isLoading = true); // show loader
-    final vendorLat = 28.7041; // Connaught Place, Delhi
-    final vendorLng = 77.1025;
-    final userLat = 28.5355; // Noida Sector 18
-    final userLng = 77.2730;
-    final cartMap = await CartService.getCart();
-    final d = haversineKm(vendorLat, vendorLng, userLat, userLng);
-    final fee = feeFromDistance(d);
-    final List<CartItem> items = [];
+    setState(() => isLoading = true);
 
-    for (final entry in cartMap.entries) {
-      final product = await ProductService.getProductById(entry.key);
-      if (product != null) {
-        items.add(
-          CartItem(
-            id: product["id"].toString(),
-            productName: product["name"],
-            vendorName: product["vendorName"],
-            imageUrl: product["imageUrl"],
-            price: product["price"].toDouble(),
-            quantity: entry.value,
-          ),
-        );
+    try {
+      // ✅ Fetch user default address
+      final addresses = await AddressService.getMyAddresses(context);
+      final defaultAddress = addresses.firstWhere(
+        (a) => a["isDefault"] == true,
+        orElse: () =>
+            addresses.isNotEmpty ? addresses.first : <String, dynamic>{},
+      );
+
+      final userLat = defaultAddress["latitude"];
+      final userLng = defaultAddress["longitude"];
+
+      // ✅ Fetch cart items
+      final cartMap = await CartService.getCart();
+      final List<CartItem> items = [];
+
+      double? vendorLat;
+      double? vendorLng;
+
+      for (final entry in cartMap.entries) {
+        final product = await ProductService.getProductById(entry.key);
+
+        if (product != null) {
+          // 👇 Expect vendor info to come from API
+          vendorLat ??= product["vendorLat"];
+          vendorLng ??= product["vendorLng"];
+
+          items.add(
+            CartItem(
+              id: product["id"].toString(),
+              productName: product["name"],
+              vendorName: product["vendorName"],
+              imageUrl: product["imageUrl"],
+              price: product["price"].toDouble(),
+              quantity: entry.value,
+            ),
+          );
+        }
       }
-    }
 
-    setState(() {
-      cartItems = items;
-      deliveryFee = fee ?? 0;
-      deliveryAvailable = fee != null;
-      isLoading = false; // hide loader
-    });
+      // ✅ Calculate delivery fee if vendor/user coords exist
+      double? fee;
+      if (vendorLat != null && vendorLng != null) {
+        final d = haversineKm(vendorLat, vendorLng, userLat, userLng);
+        fee = feeFromDistance(d);
+      }
+
+      setState(() {
+        cartItems = items;
+        deliveryFee = fee ?? 0;
+        deliveryAvailable = fee != null;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("❌ Error fetching cart: $e");
+      setState(() => isLoading = false);
+    }
   }
 
   void clearCart() async {

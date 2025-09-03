@@ -1,5 +1,6 @@
 import 'package:carocart/Apis/cart_service.dart';
 import 'package:carocart/Apis/home_api.dart';
+import 'package:carocart/Utils/Messages.dart';
 import 'package:carocart/Utils/UserCards/ProductCard.dart';
 import 'package:flutter/material.dart';
 
@@ -90,16 +91,18 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
       if (current == 0 && delta > 0) {
         // If currently zero and adding, use addToCart
         await CartService.addToCart(productId, 1);
+        await CartService.getCart();
       } else {
         // Otherwise, update normally
         await CartService.updateCartItem(productId, newQty);
+        await CartService.getCart();
       }
 
       setState(() => quantities[productId] = newQty);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error updating cart: $e"),
+          content: Text(AppMessages.cartError),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 2),
         ),
@@ -388,7 +391,7 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
                     ],
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
           floatingActionButton: FloatingActionButton.extended(

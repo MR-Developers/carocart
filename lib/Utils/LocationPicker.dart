@@ -1,4 +1,5 @@
 import 'package:carocart/Apis/address_service.dart';
+import 'package:carocart/Utils/Messages.dart';
 import 'package:flutter/material.dart';
 import 'package:google_place/google_place.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -132,7 +133,7 @@ class _LocationPickerState extends State<LocationPicker> {
 
       if (newAddress != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Address added successfully!")),
+          const SnackBar(content: Text(AppMessages.addressSuccess)),
         );
         _loadAddresses(); // refresh list
       }
@@ -156,6 +157,7 @@ class _LocationPickerState extends State<LocationPicker> {
         children: [
           Column(
             children: [
+              // 🔍 Search bar
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
@@ -164,94 +166,17 @@ class _LocationPickerState extends State<LocationPicker> {
                     hintText: "Search location...",
                     border: OutlineInputBorder(),
                   ),
-                  onChanged: autoCompleteSearch,
+                  onChanged: (value) {
+                    if (value.trim().isEmpty) {
+                      setState(() {
+                        predictions.clear();
+                      });
+                      return;
+                    }
+                    autoCompleteSearch(value);
+                  },
                 ),
               ),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 0.0),
-                child: Center(
-                  child: InkWell(
-                    onTap: _openMapAndAddAddress,
-                    borderRadius: BorderRadius.circular(30),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade400),
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.white,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: const [
-                            Icon(Icons.map, size: 20, color: Colors.black87),
-                            SizedBox(width: 8),
-                            Text(
-                              "Open Map",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ✅ Your Addresses Section
-              if (myAddresses.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Your Addresses",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: myAddresses.length,
-                    itemBuilder: (context, index) {
-                      final address = myAddresses[index];
-                      return ListTile(
-                        title: Text(address["address"] ?? ""),
-                        subtitle: Text(address["type"] ?? ""),
-                        trailing: address["isDefault"] == true
-                            ? const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                              )
-                            : null,
-                        onTap: () {
-                          Navigator.pop(context, {
-                            "lat": address["latitude"],
-                            "lng": address["longitude"],
-                            "description": address["address"],
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ] else
-                const SizedBox.shrink(),
-
-              // Predictions list
               if (predictions.isNotEmpty)
                 Expanded(
                   child: ListView.builder(
@@ -264,8 +189,156 @@ class _LocationPickerState extends State<LocationPicker> {
                       );
                     },
                   ),
+                )
+              else ...[
+                // 🗺️ Open Map Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 0.0),
+                  child: Center(
+                    child: InkWell(
+                      onTap: _openMapAndAddAddress,
+                      borderRadius: BorderRadius.circular(30),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.orange.shade400),
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.orange,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.map, size: 20, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                "Open Map",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
 
+                // ➕ Add Address Button (Styled)
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: GestureDetector(
+                    onTap: _openMapAndAddAddress,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.green.shade600,
+                            Colors.green.shade400,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.add_location_alt,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            "Add Address",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 🏠 Your Addresses
+                if (myAddresses.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Your Addresses",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: myAddresses.length,
+                      itemBuilder: (context, index) {
+                        final address = myAddresses[index];
+                        return ListTile(
+                          title: Text(address["address"] ?? ""),
+                          subtitle: Text(address["type"] ?? ""),
+                          trailing: address["isDefault"] == true
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                )
+                              : null,
+                          onTap: () async {
+                            final addressId =
+                                address["id"]; // adjust key if backend uses something else
+
+                            final success =
+                                await AddressService.setDefaultAddress(
+                                  context,
+                                  addressId,
+                                );
+
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Default address updated"),
+                                ),
+                              );
+
+                              Navigator.pop(context, {
+                                "lat": address["latitude"],
+                                "lng": address["longitude"],
+                                "description": address["address"],
+                              });
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+
+              // ✅ Confirm location when picked manually
               if (selectedLatLng != null)
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -554,7 +627,6 @@ class _AddAddressPageState extends State<AddAddressPage> {
   final TextEditingController addressController = TextEditingController();
   final TextEditingController typeController = TextEditingController();
   final TextEditingController instructionsController = TextEditingController();
-  bool isDefault = true;
   bool _isSaving = false;
 
   void _saveAddress() async {
@@ -570,7 +642,6 @@ class _AddAddressPageState extends State<AddAddressPage> {
       "longitude": widget.lng,
       "type": typeController.text,
       "instructions": instructionsController.text,
-      "isDefault": isDefault,
     };
 
     final res = await AddressService.createAddress(context, addressData);
@@ -579,9 +650,9 @@ class _AddAddressPageState extends State<AddAddressPage> {
 
     if (res != null) {
       Navigator.pop(context, res); // return created address
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Address added successfully!")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text(AppMessages.addressSuccess)));
     }
   }
 
@@ -635,16 +706,6 @@ class _AddAddressPageState extends State<AddAddressPage> {
                 controller: instructionsController,
                 decoration: const InputDecoration(labelText: "Instructions"),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Text("Set as default"),
-                  Checkbox(
-                    value: isDefault,
-                    onChanged: (v) => setState(() => isDefault = v!),
-                  ),
-                ],
-              ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -661,7 +722,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                           "Save Address",
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'package:carocart/Apis/cart_service.dart';
 import 'package:flutter/material.dart';
 
 class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
@@ -29,6 +30,16 @@ class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
 
 class _AppNavbarState extends State<AppNavbar> {
   @override
+  void initState() {
+    getCartCount();
+    super.initState();
+  }
+
+  void getCartCount() async {
+    await CartService.getCart();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AppBar(
       elevation: 2,
@@ -50,7 +61,7 @@ class _AppNavbarState extends State<AppNavbar> {
                   Text(
                     (widget.selectedLocation != null &&
                             widget.selectedLocation!.length > 25)
-                        ? widget.selectedLocation!.substring(0, 25) + "..."
+                        ? "${widget.selectedLocation!.substring(0, 25)}..."
                         : widget.selectedLocation ?? "",
                     style: TextStyle(fontSize: 16),
                   ),
@@ -63,34 +74,37 @@ class _AppNavbarState extends State<AppNavbar> {
             // Cart
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Stack(
-                alignment: Alignment.topRight,
-                children: [
-                  IconButton(
-                    icon: const Icon(
-                      Icons.shopping_bag_rounded,
-                      color: Colors.black54,
-                    ),
-                    onPressed: widget.onCartTap,
-                  ),
-                  if (widget.cartCount > 0)
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        widget.cartCount > 99
-                            ? "99+"
-                            : widget.cartCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
+              child: ValueListenableBuilder<int>(
+                valueListenable: CartService.cartCountNotifier,
+                builder: (context, count, _) {
+                  return Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.shopping_bag_rounded,
+                          color: Colors.black54,
                         ),
+                        onPressed: widget.onCartTap,
                       ),
-                    ),
-                ],
+                      if (count > 0)
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            count > 99 ? "99+" : count.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

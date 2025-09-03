@@ -15,9 +15,11 @@ class CartService {
 
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
+
     return prefs.getString("auth_token");
   }
 
+  static final ValueNotifier<int> cartCountNotifier = ValueNotifier<int>(0);
   static Future<int?> addToCart(int productId, int quantity) async {
     try {
       final token = await _getToken();
@@ -74,6 +76,7 @@ class CartService {
       for (final item in data) {
         cart[item["productId"]] = item["quantity"];
       }
+      cartCountNotifier.value = cart.length;
       return cart;
     } catch (e) {
       print("❌ Error fetching cart: $e");

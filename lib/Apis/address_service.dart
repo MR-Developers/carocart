@@ -193,7 +193,7 @@ class AddressService {
   }
 
   // -------------------- SET DEFAULT ADDRESS --------------------
-  static Future<bool> setDefaultAddress(BuildContext context, String id) async {
+  static Future<bool> setDefaultAddress(BuildContext context, int id) async {
     try {
       final token = await _getToken();
       if (token == null) {

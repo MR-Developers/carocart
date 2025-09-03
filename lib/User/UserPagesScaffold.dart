@@ -1,5 +1,6 @@
 import 'package:carocart/User/UserHome.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPagesWrapper extends StatefulWidget {
   final int initialIndex;
@@ -19,6 +20,11 @@ class _UserPagesWrapperState extends State<UserPagesWrapper> {
   int _currentIndex = 0;
 
   late List<Widget> _pages;
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("auth_token");
+    Navigator.pushNamedAndRemoveUntil(context, "/login", (route) => false);
+  }
 
   @override
   void initState() {
@@ -27,7 +33,21 @@ class _UserPagesWrapperState extends State<UserPagesWrapper> {
       UserHome(initialTab: widget.initialTab),
       const Center(child: Text("Search Page")),
       const Center(child: Text("Cart Page")),
-      const Center(child: Text("Profile Page")),
+      Center(
+        child: GestureDetector(
+          onTap: () => _logout(context),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              decoration: BoxDecoration(color: Colors.orange),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text("Logout", style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ),
+        ),
+      ),
     ];
   }
 

@@ -1,6 +1,7 @@
 import 'package:carocart/Apis/user_api.dart';
 import 'package:carocart/User/Login.dart';
 import 'package:carocart/Utils/HexColor.dart';
+import 'package:carocart/Utils/Messages.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -32,9 +33,9 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Future<void> _handleSignup() async {
     if (_password.text != _confirmPassword.text) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppMessages.passwordNotMatch)),
+      );
       return;
     }
 
@@ -51,9 +52,9 @@ class _SignUpPageState extends State<SignUpPage> {
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Signup successful!")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppMessages.signUpSuccess)),
+        );
 
         // Navigate to login page
         Navigator.pushReplacement(
@@ -61,15 +62,21 @@ class _SignUpPageState extends State<SignUpPage> {
           MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Signup failed: ${response.data}")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(AppMessages.signUpFailed)));
       }
     } on DioException catch (e) {
-      print(e.message);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.response?.data ?? e.message}")),
-      );
+      String errorMessage = AppMessages.error;
+      if (e.response?.statusCode == 401) {
+        errorMessage = AppMessages.incorrectCredentials;
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = AppMessages.connectionTimedOut;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     } finally {
       setState(() => isLoading = false);
     }

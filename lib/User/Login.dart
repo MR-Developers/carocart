@@ -2,7 +2,9 @@ import 'package:carocart/Apis/user_api.dart';
 import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/SignUp.dart';
 import 'package:carocart/Utils/HexColor.dart';
+import 'package:carocart/Utils/Messages.dart';
 import 'package:carocart/Utils/ResetPassword.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,8 +17,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool passwordvisible = true;
-  TextEditingController _email = TextEditingController();
-  TextEditingController _password = TextEditingController();
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
   final UserApi _userApi = UserApi();
   bool isLoading = false;
   @override
@@ -108,7 +110,9 @@ class _LoginPageState extends State<LoginPage> {
                           await prefs.setString("auth_token", token);
 
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Login successful!")),
+                            const SnackBar(
+                              content: Text(AppMessages.loginSuccess),
+                            ),
                           );
 
                           Navigator.pushReplacement(
@@ -119,16 +123,26 @@ class _LoginPageState extends State<LoginPage> {
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Login failed: ${response.data}"),
-                            ),
+                            SnackBar(content: Text(AppMessages.loginFailed)),
                           );
                         }
                       } catch (e) {
+                        String errorMessage = AppMessages.loginFailed;
                         print(e);
+                        if (e is DioException) {
+                          if (e.response?.statusCode == 401) {
+                            errorMessage = AppMessages.incorrectCredentials;
+                          } else if (e.type ==
+                                  DioExceptionType.connectionTimeout ||
+                              e.type == DioExceptionType.receiveTimeout) {
+                            errorMessage = AppMessages.connectionTimedOut;
+                          } else {
+                            errorMessage = AppMessages.error;
+                          }
+                        }
                         ScaffoldMessenger.of(
                           context,
-                        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+                        ).showSnackBar(SnackBar(content: Text(errorMessage)));
                       } finally {
                         setState(() => isLoading = false);
                       }
