@@ -3,6 +3,7 @@ import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/Login.dart';
 import 'package:carocart/User/UserCart.dart';
 import 'package:carocart/User/UserHome.dart';
+import 'package:carocart/User/UserPaymentPage.dart';
 import 'package:carocart/User/VendorsProductsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,17 @@ class MyApp extends StatelessWidget {
           return VendorProductsPage(vendorId: vendorId);
         },
         "/usercart": (context) => const UserCartPage(),
+        "/userpayment": (context) {
+          final args =
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
+          return PaymentPage(
+            cartItems: args["cartItems"],
+            totalAmount: args["totalAmount"],
+            grandTotal: args["grandTotal"],
+          );
+        },
+
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),
       },

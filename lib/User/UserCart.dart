@@ -1,5 +1,6 @@
 import 'package:carocart/Apis/address_service.dart';
 import 'package:carocart/Apis/cart_service.dart';
+import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/product_service.dart';
 import 'package:carocart/Utils/delivery_fee.dart';
 import 'package:flutter/material.dart';
@@ -120,31 +121,36 @@ class _UserCartPageState extends State<UserCartPage> {
 
       // ✅ Fetch cart items
       final cartMap = await CartService.getCart();
-      final List<CartItem> items = [];
 
       double? vendorLat;
       double? vendorLng;
+      final firstEntry = cartMap.entries.first;
 
-      for (final entry in cartMap.entries) {
+      // Fetch product details
+      final product = await ProductService.getProductById(firstEntry.key);
+      if (product != null) {
+        final vendor = await getVendorById(product["vendorId"]);
+        // 👇 Expect vendor info to come from API
+        vendorLat ??= vendor["latitude"];
+        vendorLng ??= vendor["longitude"];
+      }
+      final futures = cartMap.entries.map((entry) async {
         final product = await ProductService.getProductById(entry.key);
-
         if (product != null) {
-          // 👇 Expect vendor info to come from API
-          vendorLat ??= product["vendorLat"];
-          vendorLng ??= product["vendorLng"];
-
-          items.add(
-            CartItem(
-              id: product["id"].toString(),
-              productName: product["name"],
-              vendorName: product["vendorName"],
-              imageUrl: product["imageUrl"],
-              price: product["price"].toDouble(),
-              quantity: entry.value,
-            ),
+          return CartItem(
+            id: product["id"].toString(),
+            productName: product["name"],
+            vendorName: product["vendorName"],
+            imageUrl: product["imageUrl"],
+            price: product["price"].toDouble(),
+            quantity: entry.value,
           );
         }
-      }
+        return null;
+      }).toList();
+
+      final results = await Future.wait(futures);
+      final items = results.whereType<CartItem>().toList();
 
       // ✅ Calculate delivery fee if vendor/user coords exist
       double? fee;
@@ -174,13 +180,16 @@ class _UserCartPageState extends State<UserCartPage> {
     });
   }
 
-  void checkout() async {
-    setState(() => isCheckingOut = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => isCheckingOut = false);
-    ScaffoldMessenger.of(
+  void checkout() {
+    Navigator.pushNamed(
       context,
-    ).showSnackBar(const SnackBar(content: Text("Proceeding to checkout...")));
+      "/userpayment",
+      arguments: {
+        "cartItems": cartItems,
+        "totalAmount": totalPrice,
+        "grandTotal": grandTotal,
+      },
+    );
   }
 
   @override
@@ -532,11 +541,25 @@ class _UserCartPageState extends State<UserCartPage> {
                                         ),
                                       ],
                                     ),
+                                    if (couponApplied)
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              coupon = "";
+                                              discount = 0;
+                                              couponApplied = false;
+                                            });
+                                          },
+                                          child: const Text("Remove coupon"),
+                                        ),
+                                      ),
 
                                     // Status message
                                     if (couponApplied)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 10),
+                                        padding: const EdgeInsets.only(top: 0),
                                         child: Row(
                                           children: [
                                             const Icon(

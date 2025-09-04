@@ -1,3 +1,4 @@
+import 'package:carocart/Apis/address_service.dart';
 import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/user_api.dart';
 import 'package:carocart/Utils/AppBar.dart';
@@ -21,16 +22,46 @@ class _UserHomeState extends State<UserHome> {
   List<Map<String, dynamic>> filteredVendors = []; // filtered by subcategory
   bool isLoadingVendors = false;
   bool isLoadingSubs = false;
+  bool isLoadingAddress = true;
   String? selectedLocation;
-  double? lat = 18.41011;
-  double? lng = 83.902951;
+  double? lat;
+  double? lng;
   int? selectedSubCategoryId;
 
   @override
   void initState() {
     selectedTab = widget.initialTab;
     super.initState();
-    _fetchVendorsAndSubCats();
+    _loadDefaultAddress();
+  }
+
+  Future<void> _loadDefaultAddress() async {
+    try {
+      final addresses = await AddressService.getMyAddresses(context);
+      final defaultAddress = addresses.firstWhere(
+        (a) => a["isDefault"] == true,
+        orElse: () =>
+            addresses.isNotEmpty ? addresses.first : <String, dynamic>{},
+      ); // <- from user_api.dart
+      if (defaultAddress != null) {
+        setState(() {
+          lat = defaultAddress["latitude"];
+          lng = defaultAddress["longitude"];
+          selectedLocation =
+              defaultAddress["address"] ?? defaultAddress["description"];
+        });
+        _fetchVendorsAndSubCats();
+      }
+    } catch (e) {
+      // fallback if API fails
+      setState(() {
+        selectedLocation = null;
+        lat = null;
+        lng = null;
+      });
+    } finally {
+      setState(() => isLoadingAddress = false); // 👈 stop loading
+    }
   }
 
   Future<void> _fetchVendorsAndSubCats() async {
@@ -173,7 +204,8 @@ class _UserHomeState extends State<UserHome> {
           }
         },
       ),
-      body: lat == null || lng == null
+      body:
+          (!isLoadingAddress && !isLoadingSubs && (lat == null || lng == null))
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -184,7 +216,7 @@ class _UserHomeState extends State<UserHome> {
                 ],
               ),
             )
-          : isLoadingVendors
+          : isLoadingVendors || isLoadingAddress
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),

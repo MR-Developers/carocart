@@ -308,8 +308,17 @@ class _LocationPickerState extends State<LocationPicker> {
                                 )
                               : null,
                           onTap: () async {
-                            final addressId =
-                                address["id"]; // adjust key if backend uses something else
+                            final addressId = address["id"];
+
+                            if (address["isDefault"] == true) {
+                              // Already default → just return it
+                              Navigator.pop(context, {
+                                "lat": address["latitude"],
+                                "lng": address["longitude"],
+                                "description": address["address"],
+                              });
+                              return;
+                            }
 
                             final success =
                                 await AddressService.setDefaultAddress(
@@ -318,12 +327,6 @@ class _LocationPickerState extends State<LocationPicker> {
                                 );
 
                             if (success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Default address updated"),
-                                ),
-                              );
-
                               Navigator.pop(context, {
                                 "lat": address["latitude"],
                                 "lng": address["longitude"],
