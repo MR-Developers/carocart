@@ -81,8 +81,6 @@ class _UserCartPageState extends State<UserCartPage> {
         // 🔄 Update cart item in backend
         await CartService.updateCartItem(int.parse(item.id), newQuantity);
       } else {
-        // 🗑 Remove item from backend (set quantity = 0)
-
         await CartService.updateCartItem(int.parse(item.id), 0);
       }
       // 🔔 Refresh global count for AppNavbar
@@ -188,6 +186,8 @@ class _UserCartPageState extends State<UserCartPage> {
         "cartItems": cartItems,
         "totalAmount": totalPrice,
         "grandTotal": grandTotal,
+        "coupondiscount": couponDiscount,
+        "deliveryfee": deliveryFee,
       },
     );
   }
@@ -196,12 +196,7 @@ class _UserCartPageState extends State<UserCartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: const Text("Your Cart"),
-        elevation: 0,
-        backgroundColor: Colors.green.shade600,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("Your Cart"), elevation: 0),
       body: Stack(
         children: [
           cartItems.isEmpty

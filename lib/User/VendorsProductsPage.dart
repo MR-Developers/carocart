@@ -218,8 +218,6 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
         Scaffold(
           appBar: AppBar(
             title: Text(vendor?["companyName"] ?? "Vendor"),
-            backgroundColor: Colors.green.shade700,
-            foregroundColor: Colors.white,
             elevation: 4,
             centerTitle: true,
           ),

@@ -24,6 +24,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         scaffoldBackgroundColor: Colors.white,
+        appBarTheme: AppBarTheme(
+          color: Colors.green.shade600,
+          foregroundColor: Colors.white,
+        ),
+        cardColor: Colors.white,
+        cardTheme: CardThemeData(color: Colors.white),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green.shade600,
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
       initialRoute: "/flash",
       routes: {
@@ -45,6 +57,8 @@ class MyApp extends StatelessWidget {
             cartItems: args["cartItems"],
             totalAmount: args["totalAmount"],
             grandTotal: args["grandTotal"],
+            coupondiscount: args["coupondiscount"],
+            deliveryfee: args["deliveryfee"],
           );
         },
 

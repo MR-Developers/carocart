@@ -148,11 +148,7 @@ class _LocationPickerState extends State<LocationPicker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Select Location"),
-        backgroundColor: Colors.green.shade600,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("Select Location")),
       body: Stack(
         children: [
           Column(
@@ -332,6 +328,12 @@ class _LocationPickerState extends State<LocationPicker> {
                                 "lng": address["longitude"],
                                 "description": address["address"],
                               });
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(AppMessages.error),
+                                ),
+                              );
                             }
                           },
                         );
@@ -472,11 +474,7 @@ class _MapPageState extends State<MapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Pick Location"),
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("Pick Location")),
       body: Stack(
         children: [
           GoogleMap(
@@ -668,11 +666,7 @@ class _AddAddressPageState extends State<AddAddressPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Add New Address"),
-        backgroundColor: Colors.green.shade700,
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text("Add New Address")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -716,7 +710,6 @@ class _AddAddressPageState extends State<AddAddressPage> {
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _saveAddress,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade700,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
