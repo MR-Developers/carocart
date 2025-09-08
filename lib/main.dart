@@ -3,6 +3,8 @@ import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/Login.dart';
 import 'package:carocart/User/UserCart.dart';
 import 'package:carocart/User/UserHome.dart';
+import 'package:carocart/User/UserOrders.dart';
+import 'package:carocart/User/UserPagesScaffold.dart';
 import 'package:carocart/User/UserPaymentPage.dart';
 import 'package:carocart/User/VendorsProductsPage.dart';
 import 'package:flutter/material.dart';
@@ -43,7 +45,7 @@ class MyApp extends StatelessWidget {
         "/": (context) => const CategorySelectionPage(),
         "/login": (context) => const LoginPage(),
         "/role": (context) => const RoleSelectionScreen(),
-        "/userhome": (context) => const UserHome(),
+        "/userhome": (context) => const UserPagesWrapper(),
         "/vendorproducts": (context) {
           final vendorId = ModalRoute.of(context)!.settings.arguments as int;
           return VendorProductsPage(vendorId: vendorId);
@@ -61,7 +63,14 @@ class MyApp extends StatelessWidget {
             deliveryfee: args["deliveryfee"],
           );
         },
-
+        "/userorders": (context) => const UserOrders(),
+        "/userWithTab": (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map;
+          return UserPagesWrapper(
+            initialIndex: args["index"] ?? 0,
+            initialTab: args["tab"] ?? "FOOD",
+          );
+        },
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),
       },

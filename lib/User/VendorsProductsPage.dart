@@ -1,5 +1,6 @@
 import 'package:carocart/Apis/cart_service.dart';
 import 'package:carocart/Apis/home_api.dart';
+import 'package:carocart/Apis/product_service.dart';
 import 'package:carocart/Utils/Messages.dart';
 import 'package:carocart/Utils/UserCards/ProductCard.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
   Map<int, int> quantities = {};
   bool loading = true;
   bool cartUpdating = false;
+  int? cartVendorId;
 
   String? error;
 
@@ -49,8 +51,16 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
     });
     try {
       final res = await getVendorProductsGrouped(widget.vendorId);
-      final cart = await CartService.getCart(); // 👈 fetch actual cart
-
+      final cart = await CartService.getCart();
+      if (cart.length != 0) {
+        final firstEntry = cart.entries.first;
+        final product = await ProductService.getProductById(firstEntry.key);
+        if (product != null) {
+          cartVendorId = product["vendorId"];
+        } else {
+          cartVendorId = null;
+        }
+      }
       setState(() {
         groupedProducts = res;
         quantities = {};
@@ -81,24 +91,47 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
   }
 
   Future<void> handleQuantityChange(int productId, int delta) async {
-    setState(() => cartUpdating = true); // show full-screen overlay
+    setState(() => cartUpdating = true);
 
     final current = quantities[productId] ?? 0;
     var newQty = current + delta;
     if (newQty < 0) newQty = 0;
 
     try {
-      if (current == 0 && delta > 0) {
-        // If currently zero and adding, use addToCart
-        await CartService.addToCart(productId, 1);
-        await CartService.getCart();
-      } else {
-        // Otherwise, update normally
-        await CartService.updateCartItem(productId, newQty);
-        await CartService.getCart();
+      // 🔒 Block if cart has items from another vendor
+      if (delta > 0 &&
+          cartVendorId != null &&
+          cartVendorId != widget.vendorId) {
+        setState(() => cartUpdating = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "You can only order from one vendor at a time. Please clear your cart first.",
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return; // stop here
       }
 
-      setState(() => quantities[productId] = newQty);
+      // Normal add/update
+      if (current == 0 && delta > 0) {
+        await CartService.addToCart(productId, 1);
+        cartVendorId = widget.vendorId; // ✅ lock cart to this vendor
+      } else {
+        await CartService.updateCartItem(productId, newQty);
+      }
+
+      // Refresh local cart state
+      final updatedCart = await CartService.getCart();
+      setState(() {
+        quantities[productId] = newQty;
+        if (updatedCart.isEmpty) {
+          cartVendorId = null; // reset if cart cleared
+        }
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -108,7 +141,7 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
         ),
       );
     } finally {
-      setState(() => cartUpdating = false); // hide overlay
+      setState(() => cartUpdating = false);
     }
   }
 

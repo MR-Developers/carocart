@@ -1,4 +1,6 @@
+import 'package:carocart/User/UserCart.dart';
 import 'package:carocart/User/UserHome.dart';
+import 'package:carocart/User/UserOrders.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,10 +31,11 @@ class _UserPagesWrapperState extends State<UserPagesWrapper> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     _pages = [
       UserHome(initialTab: widget.initialTab),
-      const Center(child: Text("Search Page")),
-      const Center(child: Text("Cart Page")),
+      UserOrders(),
+      UserCartPage(),
       Center(
         child: GestureDetector(
           onTap: () => _logout(context),

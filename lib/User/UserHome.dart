@@ -60,7 +60,7 @@ class _UserHomeState extends State<UserHome> {
         lng = null;
       });
     } finally {
-      setState(() => isLoadingAddress = false); // 👈 stop loading
+      setState(() => isLoadingAddress = false);
     }
   }
 
@@ -167,43 +167,7 @@ class _UserHomeState extends State<UserHome> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppNavbar(
-        cartCount: 3,
-        selectedLocation: selectedLocation,
-        onCartTap: () {
-          Navigator.pushNamed(context, "/usercart");
-        },
-        onLoginTap: () {
-          Navigator.pushNamed(context, "/login");
-        },
-        onSellerTap: () {
-          Navigator.pushNamed(context, "/seller");
-        },
-        onProfileTap: () {
-          Navigator.pushNamed(context, "/profile");
-        },
-        onLocationTap: () async {
-          var result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LocationPicker(
-                apiKey: "AIzaSyAJ0oDKBoCOF6cOEttl3Yf8QU8gFRrI4FU",
-              ),
-            ),
-          );
-
-          if (result != null) {
-            setState(() {
-              selectedLocation = result["description"];
-              lat = result["lat"];
-              lng = result["lng"];
-            });
-
-            // refresh vendors with new coordinates
-            _fetchVendorsAndSubCats();
-          }
-        },
-      ),
+      appBar: AppNavbar(),
       body:
           (!isLoadingAddress && !isLoadingSubs && (lat == null || lng == null))
           ? Center(
