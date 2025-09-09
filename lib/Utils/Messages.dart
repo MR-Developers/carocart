@@ -12,4 +12,8 @@ class AppMessages {
   static const passwordNotMatch = "Passwords do not match";
   static const cartError = "Error updating cart";
   static const addressSuccess = "Address added successfully!";
+  static const cancelOrder = "Order cancelled successfully";
+  static const cancelOrderFailed = "Failed to cancel order";
+  static const itemsAddedToCartSuccessful = "All items added to cart";
+  static const itemsAddedToCartFailed = "Failed to add items to cart";
 }

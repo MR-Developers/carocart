@@ -10,7 +10,6 @@ class OrderService {
       receiveTimeout: const Duration(seconds: 20),
     ),
   );
-
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("auth_token");
@@ -49,6 +48,46 @@ class OrderService {
       return response;
     } on DioException catch (e) {
       print("❌ Dio error placing order: ${e.response?.data}");
+      return e.response;
+    } catch (e) {
+      print("❌ Unexpected error: $e");
+      return null;
+    }
+  }
+
+  static Future<Response?> getMyOrders() async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception("Not authenticated");
+
+      final response = await _dio.get(
+        "/my",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      return response;
+    } on DioException catch (e) {
+      print("❌ Dio error fetching orders: ${e.response?.data}");
+      return e.response;
+    } catch (e) {
+      print("❌ Unexpected error: $e");
+      return null;
+    }
+  }
+
+  static Future<Response?> cancelOrder(int orderId) async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception("Not authenticated");
+
+      final response = await _dio.delete(
+        "/cancel/$orderId",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      return response;
+    } on DioException catch (e) {
+      print("❌ Dio error cancelling order: ${e.response?.data}");
       return e.response;
     } catch (e) {
       print("❌ Unexpected error: $e");

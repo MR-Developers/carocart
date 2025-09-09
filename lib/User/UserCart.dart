@@ -166,6 +166,7 @@ class _UserCartPageState extends State<UserCartPage> {
       });
     } catch (e) {
       print("❌ Error fetching cart: $e");
+      if (!mounted) return;
       setState(() => isLoading = false);
     }
   }

@@ -29,6 +29,8 @@ class _AppNavbarState extends State<AppNavbar> {
   Future<void> _loadDefaultAddress() async {
     try {
       final addresses = await AddressService.getMyAddresses(context);
+      if (!mounted) return; // <- prevent setState after dispose
+
       final defaultAddress = addresses.firstWhere(
         (a) => a["isDefault"] == true,
         orElse: () =>
@@ -44,12 +46,14 @@ class _AppNavbarState extends State<AppNavbar> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         selectedLocation = null;
         lat = null;
         lng = null;
       });
     } finally {
+      if (!mounted) return;
       setState(() => isLoadingAddress = false);
     }
   }

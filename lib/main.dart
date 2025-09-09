@@ -38,6 +38,15 @@ class MyApp extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
         ),
+        tabBarTheme: TabBarThemeData(
+          labelColor: Colors.white,
+          dividerColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+
+          indicator: UnderlineTabIndicator(
+            borderSide: BorderSide(width: 5.0, color: Colors.white),
+          ),
+        ),
       ),
       initialRoute: "/flash",
       routes: {
@@ -63,7 +72,7 @@ class MyApp extends StatelessWidget {
             deliveryfee: args["deliveryfee"],
           );
         },
-        "/userorders": (context) => const UserOrders(),
+        "/userorders": (context) => const UserOrdersPage(),
         "/userWithTab": (context) {
           final args = ModalRoute.of(context)!.settings.arguments as Map;
           return UserPagesWrapper(
