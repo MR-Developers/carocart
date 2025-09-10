@@ -6,7 +6,7 @@ import 'package:carocart/Apis/order_service.dart';
 import 'package:dio/dio.dart';
 
 class UserOrdersPage extends StatefulWidget {
-  const UserOrdersPage({Key? key}) : super(key: key);
+  const UserOrdersPage({super.key});
   @override
   State<UserOrdersPage> createState() => _UserOrdersPageState();
 }
@@ -26,8 +26,9 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
     setState(() => loading = true);
     final Response? res = await OrderService.getMyOrders();
     if (res != null && res.statusCode == 200) {
+      if (!mounted) return;
       setState(() {
-        orders = res.data;
+        orders = List.from(res.data.reversed);
         loading = false;
       });
     } else {
@@ -176,7 +177,7 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "Ordered on ${formatDate(order['orderDate'] ?? '')}",
+                        "Placed on ${formatDate(order['orderDate'] ?? '')}",
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey.shade700,

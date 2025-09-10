@@ -110,11 +110,6 @@ class _PaymentPageState extends State<PaymentPage> {
         orElse: () =>
             addresses.isNotEmpty ? addresses.first : <String, dynamic>{},
       );
-      if (defaultAddress == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Please Select An Address")));
-      }
       var userIdString = await parseJwtUserId();
       var userId = int.parse(userIdString!);
       await RazorpayService.verifyPayment(
@@ -179,11 +174,6 @@ class _PaymentPageState extends State<PaymentPage> {
         orElse: () =>
             addresses.isNotEmpty ? addresses.first : <String, dynamic>{},
       );
-      if (defaultAddress == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Please Select An Address")));
-      }
       var userIdString = await parseJwtUserId();
       var userId = int.parse(userIdString!);
       final response = await OrderService.placeOrder(

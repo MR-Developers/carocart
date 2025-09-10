@@ -43,15 +43,13 @@ class _UserHomeState extends State<UserHome> {
         orElse: () =>
             addresses.isNotEmpty ? addresses.first : <String, dynamic>{},
       ); // <- from user_api.dart
-      if (defaultAddress != null) {
-        setState(() {
-          lat = defaultAddress["latitude"];
-          lng = defaultAddress["longitude"];
-          selectedLocation =
-              defaultAddress["address"] ?? defaultAddress["description"];
-        });
-        _fetchVendorsAndSubCats();
-      }
+      setState(() {
+        lat = defaultAddress["latitude"];
+        lng = defaultAddress["longitude"];
+        selectedLocation =
+            defaultAddress["address"] ?? defaultAddress["description"];
+      });
+      _fetchVendorsAndSubCats();
     } catch (e) {
       // fallback if API fails
       setState(() {
@@ -109,7 +107,7 @@ class _UserHomeState extends State<UserHome> {
         filteredVendors = [];
       });
     }
-
+    if (!mounted) return;
     setState(() => isLoadingVendors = false);
   }
 
