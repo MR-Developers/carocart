@@ -83,16 +83,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.product["name"] ?? "Product"),
-        actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {},
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(widget.product["name"] ?? "Product")),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,33 +241,32 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       ),
 
       // Bottom action bar
-      bottomNavigationBar: Row(
-        children: [
-          Expanded(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+      bottomNavigationBar: Container(
+        height: 60,
+        child: Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  // TODO: Add To Cart
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(color: Colors.green),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    "Add To Cart",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ),
-              onPressed: () {
-                // TODO: Buy now
-              },
-              child: const Text("Buy Now"),
             ),
-          ),
-          Expanded(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: () {
-                // TODO: Add To Cart
-              },
-              child: const Text("Add To Cart"),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
