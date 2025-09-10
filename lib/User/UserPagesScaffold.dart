@@ -1,6 +1,7 @@
 import 'package:carocart/User/UserCart.dart';
 import 'package:carocart/User/UserHome.dart';
 import 'package:carocart/User/UserOrders.dart';
+import 'package:carocart/User/UserProfile.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,21 +37,7 @@ class _UserPagesWrapperState extends State<UserPagesWrapper> {
       UserHome(initialTab: widget.initialTab),
       UserOrdersPage(),
       UserCartPage(),
-      Center(
-        child: GestureDetector(
-          onTap: () => _logout(context),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(color: Colors.orange),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text("Logout", style: TextStyle(color: Colors.white)),
-              ),
-            ),
-          ),
-        ),
-      ),
+      UserProfilePage(),
     ];
   }
 

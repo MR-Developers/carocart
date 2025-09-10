@@ -42,7 +42,8 @@ class _UserHomeState extends State<UserHome> {
         (a) => a["isDefault"] == true,
         orElse: () =>
             addresses.isNotEmpty ? addresses.first : <String, dynamic>{},
-      ); // <- from user_api.dart
+      );
+      if (!mounted) return; // <- from user_api.dart
       setState(() {
         lat = defaultAddress["latitude"];
         lng = defaultAddress["longitude"];
@@ -51,6 +52,7 @@ class _UserHomeState extends State<UserHome> {
       });
       _fetchVendorsAndSubCats();
     } catch (e) {
+      if (!mounted) return;
       // fallback if API fails
       setState(() {
         selectedLocation = null;
@@ -58,6 +60,7 @@ class _UserHomeState extends State<UserHome> {
         lng = null;
       });
     } finally {
+      if (!mounted) return;
       setState(() => isLoadingAddress = false);
     }
   }
@@ -100,6 +103,7 @@ class _UserHomeState extends State<UserHome> {
       // set default vendors
       _applyFilter();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         foodVendors = [];
         groceryVendors = [];
@@ -165,7 +169,16 @@ class _UserHomeState extends State<UserHome> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppNavbar(),
+      appBar: AppNavbar(
+        onLocationChanged: (location, newLat, newLng) {
+          setState(() {
+            selectedLocation = location;
+            lat = newLat;
+            lng = newLng;
+          });
+          _fetchVendorsAndSubCats(); // reload vendors when location changes
+        },
+      ),
       body:
           (!isLoadingAddress && !isLoadingSubs && (lat == null || lng == null))
           ? Center(

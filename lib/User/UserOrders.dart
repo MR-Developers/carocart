@@ -32,6 +32,7 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
         loading = false;
       });
     } else {
+      if (!mounted) return;
       setState(() => loading = false);
     }
   }
@@ -338,6 +339,7 @@ class _UserOrdersPageState extends State<UserOrdersPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text("Your Orders"),
+          automaticallyImplyLeading: false,
           bottom: const TabBar(
             tabs: [
               Tab(text: "Active Orders"),

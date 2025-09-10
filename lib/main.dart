@@ -1,5 +1,6 @@
 import 'package:carocart/Root/RoleSelection.dart';
 import 'package:carocart/User/CategorySelection.dart';
+import 'package:carocart/User/UserEditProfile.dart';
 import 'package:carocart/User/Login.dart';
 import 'package:carocart/User/UserCart.dart';
 import 'package:carocart/User/UserHome.dart';
@@ -80,6 +81,7 @@ class MyApp extends StatelessWidget {
             initialTab: args["tab"] ?? "FOOD",
           );
         },
+        "/usereditprofile": (context) => const UserEditProfile(),
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),
       },

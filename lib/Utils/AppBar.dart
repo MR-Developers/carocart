@@ -4,7 +4,9 @@ import 'package:carocart/Utils/LocationPicker.dart';
 import 'package:flutter/material.dart';
 
 class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
-  const AppNavbar({super.key});
+  final Function(String? location, double? lat, double? lng) onLocationChanged;
+
+  const AppNavbar({super.key, required this.onLocationChanged});
 
   @override
   State<AppNavbar> createState() => _AppNavbarState();
@@ -75,6 +77,7 @@ class _AppNavbarState extends State<AppNavbar> {
         lng = result["lng"];
       });
     }
+    widget.onLocationChanged(selectedLocation, lat, lng);
   }
 
   @override

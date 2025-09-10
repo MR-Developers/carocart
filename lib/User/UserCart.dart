@@ -198,7 +198,11 @@ class _UserCartPageState extends State<UserCartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(title: const Text("Your Cart"), elevation: 0),
+      appBar: AppBar(
+        title: const Text("Your Cart"),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+      ),
       body: Stack(
         children: [
           cartItems.isEmpty
