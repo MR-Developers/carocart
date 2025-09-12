@@ -3,7 +3,22 @@ import 'package:carocart/Utils/delivery_fee.dart';
 import 'package:flutter/material.dart';
 import 'package:carocart/Apis/address_service.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-// import your CartService, ProductService, VendorService if needed
+import 'package:carocart/Apis/cart_service.dart';
+
+// Example CartItem model (adjust to match your app’s model)
+class CartItem {
+  final String id;
+  final String name;
+  final double price;
+  int quantity;
+
+  CartItem({
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.quantity,
+  });
+}
 
 class ProductDetailsPage extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -17,16 +32,49 @@ class ProductDetailsPage extends StatefulWidget {
 class _ProductDetailsPageState extends State<ProductDetailsPage> {
   String deliveryAddress = "Fetching address...";
   String deliveryTime = "Calculating...";
+  CartItem? cartItem; // track this product in cart
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _loadDeliveryInfo();
+    _checkIfInCart();
+  }
+
+  Future<void> _checkIfInCart() async {
+    try {
+      setState(() => isLoading = true);
+
+      final cartResponse =
+          await CartService.getCart(); // likely Map<String, dynamic>
+      final List<dynamic> items =
+          (cartResponse["items"] as List<dynamic>? ?? []); // ✅ cast to List
+
+      final existing = items.firstWhere(
+        (c) => c["id"].toString() == widget.product["id"].toString(),
+        orElse: () => null,
+      );
+
+      if (existing != null) {
+        setState(() {
+          cartItem = CartItem(
+            id: existing["id"].toString(),
+            name: existing["name"],
+            price: (existing["price"] as num).toDouble(),
+            quantity: existing["quantity"] as int,
+          );
+        });
+      }
+    } catch (e) {
+      print("❌ Failed to check cart: $e");
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> _loadDeliveryInfo() async {
     try {
-      // ✅ Fetch user default address
       final addresses = await AddressService.getMyAddresses(context);
       final defaultAddress = addresses.firstWhere(
         (a) => a["isDefault"] == true,
@@ -42,10 +90,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       final userLng = defaultAddress["longitude"];
       double? vendorLat;
       double? vendorLng;
-      // ✅ Fetch vendor coordinates from product
+
       final product = widget.product;
       final vendor = await getVendorById(product["vendorId"]);
-      // 👇 Expect vendor info to come from API
       vendorLat ??= vendor["latitude"];
       vendorLng ??= vendor["longitude"];
 
@@ -54,7 +101,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           userLat != null &&
           userLng != null) {
         final distance = haversineKm(vendorLat, vendorLng, userLat, userLng);
-        // Estimate delivery time (e.g., 30 min per 10 km)
         final estimatedMinutes = (distance / 10 * 30).round().clamp(15, 120);
         setState(() {
           deliveryTime = "Delivered within $estimatedMinutes minutes";
@@ -69,6 +115,36 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         deliveryAddress = "Unable to fetch address";
         deliveryTime = "Delivery time unavailable";
       });
+    }
+  }
+
+  Future<void> _changeQuantity(CartItem item, int delta) async {
+    final newQuantity = (item.quantity + delta).clamp(0, 99);
+
+    setState(() {
+      item.quantity = newQuantity;
+      if (newQuantity == 0) {
+        cartItem = null; // reset to Add To Cart mode
+      }
+    });
+
+    try {
+      setState(() => isLoading = true);
+
+      if (newQuantity > 0) {
+        await CartService.updateCartItem(int.parse(item.id), newQuantity);
+      } else {
+        await CartService.updateCartItem(int.parse(item.id), 0);
+      }
+
+      await CartService.getCart();
+    } catch (e) {
+      print("❌ Failed to update quantity: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update cart item")),
+      );
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -89,13 +165,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product image
-            // Product image
             widget.product["imageUrl"] != null
                 ? Image.network(
                     widget.product["imageUrl"],
-                    fit: BoxFit
-                        .contain, // Maintains the image's original aspect ratio
-                    width: double.infinity, // Takes full width
+                    fit: BoxFit.contain,
+                    width: double.infinity,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return SizedBox(
@@ -138,8 +212,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-
-                  // Inside your widget
                   Row(
                     children: [
                       RatingBarIndicator(
@@ -148,7 +220,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                             const Icon(Icons.star, color: Colors.amber),
                         itemCount: 5,
                         itemSize: 18.0,
-
                         direction: Axis.horizontal,
                       ),
                       const SizedBox(width: 4),
@@ -158,7 +229,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -197,14 +267,13 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               ),
             ),
 
-            // Delivery info
             const Divider(),
             ListTile(
               leading: const Icon(Icons.location_on, color: Colors.green),
               title: Text("Delivers to: $deliveryAddress"),
               trailing: TextButton(
                 onPressed: () {
-                  // TODO: Change address action
+                  // TODO: Change address
                 },
                 child: const Text("Change"),
               ),
@@ -216,15 +285,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               subtitle: const Text("Delivery charges vary with location"),
             ),
             const Divider(),
-            // Description
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Text(
+              child: const Text(
                 "Description",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
             Padding(
@@ -234,39 +299,198 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 style: const TextStyle(fontSize: 14, color: Colors.black87),
               ),
             ),
-
             const SizedBox(height: 80),
           ],
         ),
       ),
 
-      // Bottom action bar
-      bottomNavigationBar: Container(
-        height: 60,
-        child: Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  // TODO: Add To Cart
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(color: Colors.green),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    "Add To Cart",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+      // Bottom bar
+      bottomNavigationBar: SizedBox(
+        height: cartItem == null ? 90 : 130,
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: const Offset(0, -2),
                     ),
-                  ),
+                  ],
                 ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                child: cartItem == null
+                    ? ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: () async {
+                          final newItem = CartItem(
+                            id: widget.product["id"].toString(),
+                            name: widget.product["name"],
+                            price: widget.product["price"]?.toDouble() ?? 0,
+                            quantity: 1,
+                          );
+
+                          setState(() => cartItem = newItem);
+
+                          try {
+                            await CartService.updateCartItem(
+                              int.parse(newItem.id),
+                              1,
+                            );
+                            await CartService.getCart();
+                          } catch (e) {
+                            print("❌ Failed to add to cart: $e");
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Failed to add item to cart"),
+                              ),
+                            );
+                          }
+                        },
+                        child: const Text(
+                          "Add To Cart",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Quantity + Price (stacked in column)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // Quantity selector
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors
+                                      .grey
+                                      .shade200, // light background for pill
+                                  borderRadius: BorderRadius.circular(
+                                    12,
+                                  ), // pill shape
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Minus button
+                                    GestureDetector(
+                                      onTap: () =>
+                                          _changeQuantity(cartItem!, -1),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color:
+                                              Colors.white, // button background
+                                        ),
+                                        child: const Icon(
+                                          Icons.remove,
+                                          size: 18,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Quantity text
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        "${cartItem!.quantity}",
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Plus button
+                                    GestureDetector(
+                                      onTap: () =>
+                                          _changeQuantity(cartItem!, 1),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color:
+                                              Colors.white, // button background
+                                        ),
+                                        child: const Icon(
+                                          Icons.add,
+                                          size: 18,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 6),
+                              // Price display
+                              Text(
+                                "₹${(cartItem!.price * cartItem!.quantity).toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Go to Cart button (with caret)
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 14,
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(context, "/cart");
+                            },
+                            icon: const Text(
+                              "Go to Cart",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            label: const Icon(
+                              Icons.chevron_right,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
