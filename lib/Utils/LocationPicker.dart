@@ -478,6 +478,7 @@ class _MapPageState extends State<MapPage> {
       body: Stack(
         children: [
           GoogleMap(
+            zoomControlsEnabled: false,
             initialCameraPosition: CameraPosition(
               target: widget.initialLatLng,
               zoom: 15,
@@ -492,10 +493,48 @@ class _MapPageState extends State<MapPage> {
                   position: selectedLatLng!,
                 ),
             },
-            onTap: (pos) {
+
+            onTap: (pos) async {
               setState(() {
                 selectedLatLng = pos;
               });
+
+              try {
+                // Get nearby places
+                var result = await googlePlace.search.getNearBySearch(
+                  Location(lat: pos.latitude, lng: pos.longitude),
+                  50,
+                );
+
+                if (result != null &&
+                    result.results != null &&
+                    result.results!.isNotEmpty &&
+                    mounted) {
+                  final place = result.results!.first;
+                  final placeId = place.placeId;
+
+                  if (placeId != null) {
+                    // Fetch place details for full address
+                    var details = await googlePlace.details.get(placeId);
+                    if (details != null && details.result != null) {
+                      setState(() {
+                        searchController.text =
+                            details.result!.formattedAddress ??
+                            place.name ??
+                            "Dropped Pin";
+                      });
+                    }
+                  }
+                } else {
+                  setState(() {
+                    searchController.text = "Dropped Pin";
+                  });
+                }
+              } catch (e) {
+                setState(() {
+                  searchController.text = "Dropped Pin";
+                });
+              }
             },
           ),
 

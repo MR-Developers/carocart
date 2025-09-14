@@ -42,17 +42,17 @@ class _UserHomeState extends State<UserHome> {
         (a) => a["isDefault"] == true,
         orElse: () =>
             addresses.isNotEmpty ? addresses.first : <String, dynamic>{},
-      ); // <- from user_api.dart
-      if (defaultAddress != null) {
-        setState(() {
-          lat = defaultAddress["latitude"];
-          lng = defaultAddress["longitude"];
-          selectedLocation =
-              defaultAddress["address"] ?? defaultAddress["description"];
-        });
-        _fetchVendorsAndSubCats();
-      }
+      );
+      if (!mounted) return; // <- from user_api.dart
+      setState(() {
+        lat = defaultAddress["latitude"];
+        lng = defaultAddress["longitude"];
+        selectedLocation =
+            defaultAddress["address"] ?? defaultAddress["description"];
+      });
+      _fetchVendorsAndSubCats();
     } catch (e) {
+      if (!mounted) return;
       // fallback if API fails
       setState(() {
         selectedLocation = null;
@@ -60,7 +60,8 @@ class _UserHomeState extends State<UserHome> {
         lng = null;
       });
     } finally {
-      setState(() => isLoadingAddress = false); // 👈 stop loading
+      if (!mounted) return;
+      setState(() => isLoadingAddress = false);
     }
   }
 
@@ -102,6 +103,7 @@ class _UserHomeState extends State<UserHome> {
       // set default vendors
       _applyFilter();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         foodVendors = [];
         groceryVendors = [];
@@ -109,7 +111,7 @@ class _UserHomeState extends State<UserHome> {
         filteredVendors = [];
       });
     }
-
+    if (!mounted) return;
     setState(() => isLoadingVendors = false);
   }
 
@@ -168,40 +170,13 @@ class _UserHomeState extends State<UserHome> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppNavbar(
-        cartCount: 3,
-        selectedLocation: selectedLocation,
-        onCartTap: () {
-          Navigator.pushNamed(context, "/usercart");
-        },
-        onLoginTap: () {
-          Navigator.pushNamed(context, "/login");
-        },
-        onSellerTap: () {
-          Navigator.pushNamed(context, "/seller");
-        },
-        onProfileTap: () {
-          Navigator.pushNamed(context, "/profile");
-        },
-        onLocationTap: () async {
-          var result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const LocationPicker(
-                apiKey: "AIzaSyAJ0oDKBoCOF6cOEttl3Yf8QU8gFRrI4FU",
-              ),
-            ),
-          );
-
-          if (result != null) {
-            setState(() {
-              selectedLocation = result["description"];
-              lat = result["lat"];
-              lng = result["lng"];
-            });
-
-            // refresh vendors with new coordinates
-            _fetchVendorsAndSubCats();
-          }
+        onLocationChanged: (location, newLat, newLng) {
+          setState(() {
+            selectedLocation = location;
+            lat = newLat;
+            lng = newLng;
+          });
+          _fetchVendorsAndSubCats(); // reload vendors when location changes
         },
       ),
       body:

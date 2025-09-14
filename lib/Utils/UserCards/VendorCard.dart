@@ -61,12 +61,20 @@ class VendorCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(
-          context,
-          "/vendorproducts",
-          arguments: vendor["id"],
-        );
+        if (open) {
+          Navigator.pushNamed(
+            context,
+            "/vendorproducts",
+            arguments: vendor["id"],
+          );
+        } else {
+          // Optional: show a snackbar/toast
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("This vendor is currently closed.")),
+          );
+        }
       },
+
       child: Opacity(
         opacity: open ? 1.0 : 0.8,
         child: Stack(

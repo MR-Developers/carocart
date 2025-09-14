@@ -1,4 +1,5 @@
 import 'package:carocart/Apis/constants.dart';
+import 'package:carocart/Utils/Messages.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -79,7 +80,6 @@ class CartService {
       cartCountNotifier.value = cart.length;
       return cart;
     } catch (e) {
-      print("❌ Error fetching cart: $e");
       return {};
     }
   }
@@ -96,6 +96,36 @@ class CartService {
 
     if (res.statusCode != 200 && res.statusCode != 204) {
       throw Exception("Failed to update cart: ${res.statusMessage}");
+    }
+  }
+
+  static Future<void> clearCart() async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception("Not authenticated");
+
+      final response = await _dio.delete(
+        "/clear",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // reset cart count to 0 and notify listeners
+        cartCountNotifier.value = 0;
+        print("✅ Cart cleared successfully");
+      } else {
+        throw Exception("Failed to clear cart: ${response.statusMessage}");
+      }
+    } on DioException catch (e) {
+      var errorMessage = AppMessages.error;
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = AppMessages.connectionTimedOut;
+      }
+      rethrow;
+    } catch (e) {
+      print("Unexpected error while clearing cart: $e");
+      rethrow;
     }
   }
 }

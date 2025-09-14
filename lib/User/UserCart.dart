@@ -2,6 +2,7 @@ import 'package:carocart/Apis/address_service.dart';
 import 'package:carocart/Apis/cart_service.dart';
 import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/product_service.dart';
+import 'package:carocart/User/UserPagesScaffold.dart';
 import 'package:carocart/Utils/delivery_fee.dart';
 import 'package:flutter/material.dart';
 
@@ -165,13 +166,14 @@ class _UserCartPageState extends State<UserCartPage> {
       });
     } catch (e) {
       print("❌ Error fetching cart: $e");
+      if (!mounted) return;
       setState(() => isLoading = false);
     }
   }
 
   void clearCart() async {
     setState(() => isClearing = true);
-    await Future.delayed(const Duration(seconds: 1));
+    await CartService.clearCart();
     setState(() {
       cartItems.clear();
       isClearing = false;
@@ -196,7 +198,11 @@ class _UserCartPageState extends State<UserCartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(title: const Text("Your Cart"), elevation: 0),
+      appBar: AppBar(
+        title: const Text("Your Cart"),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+      ),
       body: Stack(
         children: [
           cartItems.isEmpty
@@ -702,7 +708,16 @@ class _UserCartPageState extends State<UserCartPage> {
           ),
           const SizedBox(height: 10),
           const Text("Your cart is empty"),
-          ElevatedButton(onPressed: () {}, child: const Text("Start Shopping")),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                "/userhome",
+                (route) => false,
+              );
+            },
+            child: const Text("Start Shopping"),
+          ),
         ],
       ),
     );

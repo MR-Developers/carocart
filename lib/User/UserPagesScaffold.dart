@@ -1,4 +1,6 @@
+import 'package:carocart/User/UserCart.dart';
 import 'package:carocart/User/UserHome.dart';
+import 'package:carocart/User/UserOrders.dart';
 import 'package:carocart/User/UserProfile.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,25 +32,12 @@ class _UserPagesWrapperState extends State<UserPagesWrapper> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     _pages = [
       UserHome(initialTab: widget.initialTab),
-      const Center(child: Text("Search Page")),
-      const Center(child: Text("Cart Page")),
-      Center(
-        child: GestureDetector(
-          onTap: () => _logout(context),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(color: Colors.orange),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text("Logout", style: TextStyle(color: Colors.white)),
-              ),
-            ),
-          ),
-        ),
-      ),
+      UserOrdersPage(),
+      UserCartPage(),
+      UserProfilePage(),
     ];
   }
 
@@ -57,7 +46,7 @@ class _UserPagesWrapperState extends State<UserPagesWrapper> {
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.green.shade700,
+        selectedItemColor: Colors.orange.shade700,
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: (index) {

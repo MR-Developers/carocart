@@ -17,18 +17,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       "title": "On-Demand Delivery",
       "subtitle":
           "We turn your retail pickup orders into same day delivery with three simple steps",
-      "image": "assets/images/Step_1.png",
+      "image": "assets/images/User/Step_1.png",
     },
     {
       "title": "Buy Online",
       "subtitle": "And we'll bring it straight to your door on the same day ",
-      "image": "assets/images/Step_2.png",
+      "image": "assets/images/User/Step_2.png",
     },
     {
       "title": "Fast & Reliable Schedule With Hourly",
       "subtitle":
           "Our delivery partners ensure your groceries arrive on time, every time",
-      "image": "assets/images/Step_3.png",
+      "image": "assets/images/User/Step_3.png",
     },
   ];
 
