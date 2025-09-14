@@ -94,4 +94,24 @@ class OrderService {
       return null;
     }
   }
+
+  static Future<Response?> getOrderCount() async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception("Not authenticated");
+
+      final response = await _dio.get(
+        "/me/count",
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      return response;
+    } on DioException catch (e) {
+      print("❌ Dio error cancelling order: ${e.response?.data}");
+      return e.response;
+    } catch (e) {
+      print("❌ Unexpected error: $e");
+      return null;
+    }
+  }
 }

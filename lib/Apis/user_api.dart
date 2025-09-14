@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:carocart/Apis/constants.dart';
 import 'package:dio/dio.dart';
 
@@ -26,8 +28,15 @@ class UserApi {
   }
 
   // Update Profile
-  Future<Response> updateProfile(Map<String, dynamic> body) async {
-    return _dio.put("/profile", data: body);
+  Future<bool> updateProfile({required Map<String, dynamic> user}) async {
+    try {
+      final response = await _dio.put("/profile", data: user);
+
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      print("Dio error: ${e.response?.data ?? e.message}");
+      return false;
+    }
   }
 
   //Get Profile (with imageUrl)

@@ -1,6 +1,11 @@
 import 'dart:io';
+import 'package:carocart/Apis/user_profile_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Apis/delivery.Person.dart';
 
 class UserEditProfile extends StatefulWidget {
   const UserEditProfile({Key? key}) : super(key: key);
@@ -15,21 +20,112 @@ class _UserEditProfileState extends State<UserEditProfile> {
   final TextEditingController _lastName = TextEditingController();
   final TextEditingController _phone = TextEditingController();
   final TextEditingController _dob = TextEditingController();
-  final TextEditingController _email = TextEditingController(
-    text: "user@email.com",
-  );
+  final TextEditingController _email = TextEditingController();
 
   bool saving = false;
-  File? _profileImage; // Holds selected image
+  bool loading = true;
+  File? _profileImage;
+  String? _profileImageUrl;
 
   final ImagePicker _picker = ImagePicker();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  String formatDob(String input) {
+    try {
+      final parsed = DateFormat("d/M/yyyy").parseStrict(input);
+      return DateFormat("yyyy-MM-dd").format(parsed);
+    } catch (e) {
+      print("❌ DOB parsing failed: $e");
+      return "";
+    }
+  }
+
+  String parseDob(String input) {
+    try {
+      final parsed = DateFormat("yyyy-MM-dd").parseStrict(input);
+      return DateFormat("d/M/yyyy").format(parsed);
+    } catch (e) {
+      return "";
+    }
+  }
+
+  Future<void> _loadProfile() async {
+    final profile = await UserService.getProfile();
+    if (profile != null) {
+      setState(() {
+        _firstName.text = profile["firstName"] ?? "";
+        _lastName.text = profile["lastName"] ?? "";
+        _phone.text = profile["phoneNumber"] ?? "";
+        _dob.text = parseDob(profile["dob"] ?? "");
+        _email.text = profile["email"] ?? "";
+        _profileImageUrl = profile["profileImageUrl"];
+        loading = false;
+      });
+    } else {
+      setState(() => loading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Failed to load profile")));
+    }
+  }
+
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImage = File(pickedFile.path);
-      });
+
+    if (pickedFile == null) return;
+
+    final file = File(pickedFile.path);
+
+    // Update UI preview immediately
+    setState(() {
+      _profileImage = file;
+    });
+    String url = "";
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("auth_token");
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token!);
+    final userId = decodedToken["userId"];
+    try {
+      // 🔑 Upload to Firebase Storage
+      final response = await uploadFile(
+        context: context,
+        filePath: pickedFile.path,
+        folder: "profile_images/${userId}",
+      );
+      if (response.containsKey("data")) {
+        url = response["data"];
+      } else {
+        throw Exception("Problem occured when uploading an image");
+      }
+
+      // 🔄 Update backend profile with new image URL
+      final success = await UserService.updateProfileImage({"imageUrl": url});
+
+      if (success) {
+        setState(() {
+          _profileImageUrl = url; // update avatar image
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Profile picture updated successfully!"),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to update profile image.")),
+        );
+      }
+    } catch (e) {
+      print("❌ Image upload error: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Error uploading image")));
     }
   }
 
@@ -86,8 +182,41 @@ class _UserEditProfileState extends State<UserEditProfile> {
     }
   }
 
+  Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => saving = true);
+
+    final user = {
+      "firstName": _firstName.text.trim(),
+      "lastName": _lastName.text.trim(),
+      "phoneNumber": _phone.text.trim(),
+      "dob": formatDob(_dob.text.trim()),
+      "email": _email.text.trim(),
+      "profileImageUrl": _profileImageUrl,
+    };
+
+    bool success = await UserService.updateProfile(user);
+
+    setState(() => saving = false);
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile updated successfully!")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to update profile.")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(title: const Text("Edit Profile"), elevation: 0),
@@ -96,7 +225,6 @@ class _UserEditProfileState extends State<UserEditProfile> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Profile header
             Column(
               children: [
                 GestureDetector(
@@ -105,13 +233,18 @@ class _UserEditProfileState extends State<UserEditProfile> {
                     radius: 45,
                     backgroundImage: _profileImage != null
                         ? FileImage(_profileImage!)
+                        : (_profileImageUrl != null &&
+                              _profileImageUrl!.isNotEmpty)
+                        ? NetworkImage(_profileImageUrl!)
                         : const NetworkImage("https://i.pravatar.cc/150?img=5")
                               as ImageProvider,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  "Your Name",
+                  "${_firstName.text} ${_lastName.text}".trim().isEmpty
+                      ? "Your Name"
+                      : "${_firstName.text} ${_lastName.text}",
                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -120,8 +253,6 @@ class _UserEditProfileState extends State<UserEditProfile> {
                 const SizedBox(height: 20),
               ],
             ),
-
-            // Inputs
             _buildInput(
               icon: Icons.person,
               label: "First Name",
@@ -153,28 +284,11 @@ class _UserEditProfileState extends State<UserEditProfile> {
               controller: _email,
               readOnly: true,
             ),
-
             const SizedBox(height: 30),
-
-            // Update Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: saving
-                    ? null
-                    : () {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() => saving = true);
-                          Future.delayed(const Duration(seconds: 2), () {
-                            setState(() => saving = false);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Profile Updated Successfully"),
-                              ),
-                            );
-                          });
-                        }
-                      },
+                onPressed: saving ? null : _updateProfile,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

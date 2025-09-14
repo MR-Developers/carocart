@@ -1,10 +1,12 @@
 import 'package:carocart/Apis/address_service.dart';
 import 'package:carocart/Apis/cart_service.dart';
 import 'package:carocart/Apis/home_api.dart';
+import 'package:carocart/Apis/order_service.dart';
 import 'package:carocart/Apis/product_service.dart';
 import 'package:carocart/User/UserPagesScaffold.dart';
 import 'package:carocart/Utils/delivery_fee.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CartItem {
   final String id;
@@ -50,10 +52,31 @@ class _UserCartPageState extends State<UserCartPage> {
   double get grandTotal =>
       (totalPrice - couponDiscount) + (deliveryAvailable ? deliveryFee : 0);
 
-  void applyCoupon() {
-    if (coupon.trim().toUpperCase() == "OLIVE20" && !couponApplied) {
+  Future<int> getMyOrderCount() async {
+    try {
+      final response = await OrderService.getOrderCount(); // Response object
+      if (response != null) {
+        // Assuming your API returns { "count": 0 } or a number directly
+        if (response.data is int) {
+          return response.data;
+        } else if (response.data is Map && response.data['count'] != null) {
+          return response.data['count'];
+        }
+      }
+      return 0; // default if response is empty or unexpected
+    } catch (e) {
+      return 999999; // fallback if API fails
+    }
+  }
+
+  void applyCoupon() async {
+    var orderCount = await getMyOrderCount();
+
+    if (coupon.trim().toUpperCase() == "FIRST15" &&
+        !couponApplied &&
+        orderCount == 0) {
       setState(() {
-        discount = 0.2;
+        discount = 0.15; // FIRST15 = 15%
         couponApplied = true;
       });
     } else {
@@ -61,6 +84,13 @@ class _UserCartPageState extends State<UserCartPage> {
         discount = 0;
         couponApplied = false;
       });
+
+      // Show error message
+      Fluttertoast.showToast(
+        msg: "Coupon valid only for first-time users",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
     }
   }
 

@@ -46,23 +46,20 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     try {
       setState(() => isLoading = true);
 
-      final cartResponse =
-          await CartService.getCart(); // likely Map<String, dynamic>
-      final List<dynamic> items =
-          (cartResponse["items"] as List<dynamic>? ?? []); // ✅ cast to List
+      final Map<int, int> cartMap =
+          await CartService.getCart() as Map<int, int>? ?? {};
 
-      final existing = items.firstWhere(
-        (c) => c["id"].toString() == widget.product["id"].toString(),
-        orElse: () => null,
-      );
+      final int productId = widget.product["id"] as int;
 
-      if (existing != null) {
+      if (cartMap.containsKey(productId)) {
+        final int quantity = cartMap[productId] ?? 0;
+
         setState(() {
           cartItem = CartItem(
-            id: existing["id"].toString(),
-            name: existing["name"],
-            price: (existing["price"] as num).toDouble(),
-            quantity: existing["quantity"] as int,
+            id: productId.toString(),
+            name: widget.product["name"],
+            price: (widget.product["price"] as num).toDouble(),
+            quantity: quantity,
           );
         });
       }
@@ -472,7 +469,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                               ),
                             ),
                             onPressed: () {
-                              Navigator.pushNamed(context, "/cart");
+                              Navigator.pushNamed(context, "/usercart");
                             },
                             icon: const Text(
                               "Go to Cart",

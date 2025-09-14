@@ -1,5 +1,8 @@
 import 'package:carocart/Root/RoleSelection.dart';
 import 'package:carocart/User/CategorySelection.dart';
+import 'package:carocart/User/UserChangePassword.dart';
+import 'package:carocart/User/UserContactUs.dart';
+import 'package:carocart/User/UserEditAddresses.dart';
 import 'package:carocart/User/UserEditProfile.dart';
 import 'package:carocart/User/Login.dart';
 import 'package:carocart/User/UserCart.dart';
@@ -7,6 +10,7 @@ import 'package:carocart/User/UserHome.dart';
 import 'package:carocart/User/UserOrders.dart';
 import 'package:carocart/User/UserPagesScaffold.dart';
 import 'package:carocart/User/UserPaymentPage.dart';
+import 'package:carocart/User/UserYourAddresses.dart';
 import 'package:carocart/User/VendorsProductsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -82,6 +86,15 @@ class MyApp extends StatelessWidget {
           );
         },
         "/usereditprofile": (context) => const UserEditProfile(),
+        "/useryouraddresses": (context) => const YourAddressesPage(),
+        '/usereditaddress': (context) {
+          final args =
+              ModalRoute.of(context)!.settings.arguments
+                  as Map<String, dynamic>;
+          return EditAddressPage(address: args);
+        },
+        "/usercontactus": (context) => ContactUsPage(),
+        "/userchangepassword": (context) => ChangePasswordPage(),
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),
       },

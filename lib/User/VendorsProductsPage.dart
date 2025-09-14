@@ -1,6 +1,7 @@
 import 'package:carocart/Apis/cart_service.dart';
 import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/product_service.dart';
+import 'package:carocart/User/ProductDetails.dart';
 import 'package:carocart/Utils/Messages.dart';
 import 'package:carocart/Utils/UserCards/ProductCard.dart';
 import 'package:flutter/material.dart';
@@ -24,10 +25,10 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
   int? cartVendorId;
 
   String? error;
-
+  final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _categoryKeys = {}; // category -> key
-
+  List<Map<String, dynamic>> allProducts = [];
   @override
   void initState() {
     super.initState();
@@ -61,6 +62,17 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
           cartVendorId = null;
         }
       }
+      final tempProducts = <Map<String, dynamic>>[];
+      for (final category in res.keys) {
+        final subcats = res[category] as Map;
+        for (final subcatName in subcats.keys) {
+          final products = subcats[subcatName] as List;
+          for (final p in products) {
+            tempProducts.add(p);
+          }
+        }
+      }
+      setState(() => allProducts = tempProducts);
       setState(() {
         groupedProducts = res;
         quantities = {};
@@ -257,6 +269,69 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
           body: ListView(
             controller: _scrollController,
             children: [
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: "Search products...",
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (query) {
+                    setState(() {}); // refresh search suggestions
+                  },
+                ),
+              ),
+
+              if (_searchController.text.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Column(
+                    children: allProducts
+                        .where(
+                          (p) => p["name"].toString().toLowerCase().contains(
+                            _searchController.text.toLowerCase(),
+                          ),
+                        )
+                        .map(
+                          (p) => InkWell(
+                            onTap: () {
+                              _searchController.clear();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ProductDetailsPage(product: p),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Row(
+                                children: [
+                                  Expanded(child: Text(p["name"])),
+                                  const Icon(Icons.arrow_forward_ios, size: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
               if (vendor != null)
                 Card(
                   margin: const EdgeInsets.all(12),

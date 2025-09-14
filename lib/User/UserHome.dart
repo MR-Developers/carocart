@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:carocart/Apis/address_service.dart';
 import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/user_api.dart';
@@ -24,15 +26,35 @@ class _UserHomeState extends State<UserHome> {
   bool isLoadingSubs = false;
   bool isLoadingAddress = true;
   String? selectedLocation;
+  PageController _bannerController = PageController(viewportFraction: 1);
+  int _currentBannerIndex = 0;
+  Timer? _bannerTimer;
   double? lat;
   double? lng;
   int? selectedSubCategoryId;
+  List<Map<String, String>> banners = [
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
+  ];
 
   @override
   void initState() {
     selectedTab = widget.initialTab;
     super.initState();
     _loadDefaultAddress();
+    _bannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (banners.isEmpty) return;
+
+      _currentBannerIndex = (_currentBannerIndex + 1) % banners.length;
+
+      if (_bannerController.hasClients) {
+        _bannerController.animateToPage(
+          _currentBannerIndex,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   Future<void> _loadDefaultAddress() async {
@@ -164,6 +186,13 @@ class _UserHomeState extends State<UserHome> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    _bannerController.dispose();
+    _bannerTimer?.cancel();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final vendors = filteredVendors;
 
@@ -198,6 +227,35 @@ class _UserHomeState extends State<UserHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Banner Scroller
+                  if (banners.isNotEmpty)
+                    SizedBox(
+                      height: 170,
+                      child: SizedBox(
+                        height: 150,
+                        child: PageView.builder(
+                          itemCount: banners.length,
+                          controller: _bannerController,
+                          itemBuilder: (context, index) {
+                            final banner = banners[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.asset(
+                                  banner["imageUrl"]!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 20),
                   // Subcategories
                   if (subCategories.isNotEmpty)
                     Column(

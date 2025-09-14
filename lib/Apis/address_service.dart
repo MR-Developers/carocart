@@ -100,7 +100,7 @@ class AddressService {
   // -------------------- UPDATE ADDRESS --------------------
   static Future<Map<String, dynamic>?> updateAddress(
     BuildContext context,
-    String id,
+    int id,
     Map<String, dynamic> addressData,
   ) async {
     try {
@@ -132,7 +132,7 @@ class AddressService {
   }
 
   // -------------------- DELETE ADDRESS --------------------
-  static Future<bool> deleteAddress(BuildContext context, String id) async {
+  static Future<bool> deleteAddress(BuildContext context, int id) async {
     try {
       final token = await _getToken();
       if (token == null) {

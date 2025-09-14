@@ -1,3 +1,4 @@
+import 'package:carocart/Apis/user_profile_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,31 +10,74 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  // Dummy Data (replace with real)
-  String name = 'Budda Manikanta Saaketh';
-  String email = 'buddamanikantasaaketh@gmail.com';
+  String name = '';
+  String email = '';
+  String? profileImageUrl; // store fetched profile image
+  bool loading = true;
 
-  void _onEditProfile() {
-    Navigator.pushNamed(context, "/usereditprofile");
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
   }
 
-  void _onAddresses() {}
-  void _onContactSupport() {}
-  void _onChangePassword() {}
+  Future<void> _fetchUserProfile() async {
+    setState(() => loading = true);
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("auth_token");
+    if (token == null) return;
+
+    final profile = await UserService.getProfile(); // fetch from API
+    if (profile != null) {
+      setState(() {
+        name = "${profile['firstName'] ?? ''} ${profile['lastName'] ?? ''}"
+            .trim();
+        email = profile['email'] ?? '';
+        profileImageUrl = profile['profileImageUrl'];
+        loading = false;
+      });
+    } else {
+      setState(() => loading = false);
+      // optionally show error
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Failed to load profile")));
+    }
+  }
+
+  void _onEditProfile() {
+    Navigator.pushNamed(context, "/usereditprofile").then((_) {
+      // refresh profile after coming back from edit page
+      _fetchUserProfile();
+    });
+  }
+
+  void _onAddresses() {
+    Navigator.pushNamed(context, "/useryouraddresses");
+  }
+
+  void _onContactSupport() {
+    Navigator.pushNamed(context, "/usercontactus");
+  }
+
+  void _onChangePassword() {
+    Navigator.pushNamed(context, "/userchangepassword");
+  }
+
   void _onLogout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("auth_token");
     Navigator.pushNamedAndRemoveUntil(context, "/login", (route) => false);
   }
 
-  String _formatLastLogin(DateTime d) {
-    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} '
-        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     final primary = Colors.green.shade600;
+
+    if (loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
@@ -59,14 +103,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   CircleAvatar(
                     radius: 38,
                     backgroundColor: Colors.white,
-                    child: Text(
-                      name.isNotEmpty ? name[0] : '?',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: primary,
-                      ),
-                    ),
+                    backgroundImage:
+                        profileImageUrl != null && profileImageUrl!.isNotEmpty
+                        ? NetworkImage(profileImageUrl!)
+                        : null,
+                    child: profileImageUrl == null || profileImageUrl!.isEmpty
+                        ? Text(
+                            name.isNotEmpty ? name[0] : '?',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: primary,
+                            ),
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -74,7 +124,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          name,
+                          name.isNotEmpty ? name : "Your Name",
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -134,7 +184,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     onTap: _onLogout,
                     isDestructive: true,
                   ),
-
                   const SizedBox(height: 16),
                 ],
               ),
@@ -174,56 +223,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         subtitle: subtitle != null ? Text(subtitle) : null,
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required String title,
-    required IconData icon,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 18),
-              const SizedBox(width: 6),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 15,
-              color: Colors.grey.shade800,
-            ),
-          ),
-        ],
       ),
     );
   }
