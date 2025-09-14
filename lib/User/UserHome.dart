@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:carocart/Apis/address_service.dart';
 import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/user_api.dart';
+import 'package:carocart/User/ViewAllCategories.dart';
 import 'package:carocart/Utils/AppBar.dart';
 import 'package:carocart/Utils/LocationPicker.dart';
 import 'package:carocart/Utils/UserCards/VendorCard.dart';
@@ -28,11 +29,20 @@ class _UserHomeState extends State<UserHome> {
   String? selectedLocation;
   PageController _bannerController = PageController(viewportFraction: 1);
   int _currentBannerIndex = 0;
+  List<int>? vendorIdList;
   Timer? _bannerTimer;
   double? lat;
   double? lng;
   int? selectedSubCategoryId;
   List<Map<String, String>> banners = [
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_1.png"},
     {"imageUrl": "assets/images/Banner_1.png"},
     {"imageUrl": "assets/images/Banner_1.png"},
   ];
@@ -107,8 +117,14 @@ class _UserHomeState extends State<UserHome> {
       List<int> vendorIds = [];
       if (selectedTab == "FOOD" && food.isNotEmpty) {
         vendorIds = food.map((v) => v["id"] as int).toList();
+        setState(() {
+          vendorIdList = vendorIds;
+        });
       } else if (selectedTab == "GROCERY" && grocery.isNotEmpty) {
         vendorIds = grocery.map((v) => v["id"] as int).toList();
+        setState(() {
+          vendorIdList = vendorIds;
+        });
       }
 
       if (vendorIds.isNotEmpty) {
@@ -261,13 +277,33 @@ class _UserHomeState extends State<UserHome> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Categories",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Categories",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AllCategoriesPage(
+                                      vendorIds: vendorIdList,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: const Text("View All"),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 12),
+
                         const SizedBox(height: 12),
                         isLoadingSubs
                             ? const Center(child: CircularProgressIndicator())
