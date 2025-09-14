@@ -382,7 +382,7 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                widget.deliveryData?.submitData(context);
                 _submitApplication();
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

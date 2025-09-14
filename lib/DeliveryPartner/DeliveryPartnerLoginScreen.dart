@@ -1,9 +1,105 @@
+import 'package:carocart/DeliveryPartner/DelivaryParterhomeScafold.dart';
 import 'package:carocart/DeliveryPartner/DeliveryPartnerSignup.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // ✅ Import flutter_svg
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ For local storage
+import '../Apis/delivery.Person.dart'; // ✅ Import the API functions
 
-class DeliveryPartnerLoginScreen extends StatelessWidget {
+class DeliveryPartnerLoginScreen extends StatefulWidget {
   const DeliveryPartnerLoginScreen({super.key});
+
+  @override
+  State<DeliveryPartnerLoginScreen> createState() =>
+      _DeliveryPartnerLoginScreenState();
+}
+
+class _DeliveryPartnerLoginScreenState
+    extends State<DeliveryPartnerLoginScreen> {
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _agreeTerms = true;
+
+  /// ✅ Handle login
+  Future<void> _handleLogin() async {
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (phone.isEmpty || phone.length != 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter a valid 10-digit phone number"),
+        ),
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter your password")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await deliveryLogin(context, {
+        "phoneOrEmail": phone,
+        "password": password,
+      });
+
+      setState(() => _isLoading = false);
+
+      if (response.isNotEmpty && response['token'] != null) {
+        final token = response['token'];
+
+        /// ✅ Save token to local storage
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('authToken', token);
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Login Successful")));
+
+        /// Navigate to home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DelivaryParterHomeScafold(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response['message'] ?? "Invalid credentials")),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+    }
+  }
+
+  /// ✅ Retrieve Token (For API calls or checking if logged in)
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken');
+  }
+
+  /// ✅ Logout Function
+  Future<void> logoutUser(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('authToken');
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DeliveryPartnerLoginScreen(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +109,7 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Illustration + Header Section with Curved Bottom
+              /// ======= Header Section with Curve =======
               ClipPath(
                 clipper: BottomCurveClipper(),
                 child: Container(
@@ -63,15 +159,15 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                 ),
               ),
 
-              // Form Section
+              /// ======= Login Form =======
               Padding(
                 padding: const EdgeInsets.only(left: 20, right: 20, top: 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Email
+                    /// Phone Field
                     const Text(
-                      "Email",
+                      "Phone Number",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -79,9 +175,12 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 10,
                       decoration: InputDecoration(
-                        hintText: "Enter your email",
+                        hintText: "Enter your phone number",
+                        counterText: "",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -92,7 +191,7 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 15),
 
-                    // Password
+                    /// Password Field
                     const Text(
                       "Password",
                       style: TextStyle(
@@ -102,6 +201,7 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     TextField(
+                      controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
                         hintText: "Enter your password",
@@ -115,9 +215,17 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 15),
 
+                    /// Terms and Conditions
                     Row(
                       children: [
-                        Checkbox(value: true, onChanged: (value) {}),
+                        Checkbox(
+                          value: _agreeTerms,
+                          onChanged: (value) {
+                            setState(() {
+                              _agreeTerms = value ?? false;
+                            });
+                          },
+                        ),
                         const Expanded(
                           child: Text.rich(
                             TextSpan(
@@ -147,11 +255,11 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // Login Button
+                    /// Login Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(vertical: 15),
@@ -159,16 +267,20 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(fontSize: 18),
-                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                "Login",
+                                style: TextStyle(fontSize: 18),
+                              ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // ✅ Signup Text
+                    /// Sign Up Navigation
                     Center(
                       child: GestureDetector(
                         onTap: () {
@@ -176,7 +288,7 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const DeliveryPartnerSignup(), // ✅ Navigate
+                                  const DeliveryPartnerSignup(),
                             ),
                           );
                         },
@@ -209,7 +321,7 @@ class DeliveryPartnerLoginScreen extends StatelessWidget {
   }
 }
 
-/// ✅ Custom Clipper for Bottom Curve
+/// Custom Bottom Curve
 class BottomCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -230,7 +342,7 @@ class BottomCurveClipper extends CustomClipper<Path> {
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
-/// ✅ Registration Screen (Dummy)
+/// Dummy Registration Screen
 class RegistrationScreen extends StatelessWidget {
   const RegistrationScreen({super.key});
 

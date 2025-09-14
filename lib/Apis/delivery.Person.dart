@@ -30,7 +30,7 @@ void showErrorDialog(BuildContext context, String message) {
 class ApiClient {
   static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "${ApiConstants.baseUrl}:8080",
+      baseUrl: "${ApiConstants.baseUrl}:8088",
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {"Content-Type": "application/json"},
@@ -41,7 +41,7 @@ class ApiClient {
   static Dio getPrivateDio(String? token) {
     return Dio(
       BaseOptions(
-        baseUrl: "${ApiConstants.baseUrl}:8080",
+        baseUrl: "${ApiConstants.baseUrl}:8088",
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {
@@ -65,9 +65,31 @@ Future<Map<String, dynamic>> deliveryRegister(
       "/deliveryboys/register",
       data: data,
     );
-    return response.data;
+
+    print("RAW RESPONSE: ${response.data}");
+
+    // ✅ FIXED: Safely handle response data
+    if (response.data != null) {
+      if (response.data is Map<String, dynamic>) {
+        return response.data as Map<String, dynamic>;
+      } else {
+        // If response.data is not a Map, wrap it
+        return {"data": response.data};
+      }
+    } else {
+      return {};
+    }
   } on DioException catch (e) {
     _handleApiError(context, e, "Delivery Register Error");
+    return {};
+  } catch (e) {
+    // ✅ ADDED: Catch any other unexpected errors
+    print("Unexpected error in deliveryRegister: $e");
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Unexpected error: $e")));
+    }
     return {};
   }
 }
@@ -361,21 +383,76 @@ Future<Map<String, dynamic>> getDeliveryEarningsSummary(
 }
 
 /// ==============================
-/// Private Helper - API Error Handler
+/// FIXED: Private Helper - API Error Handler
 /// ==============================
 void _handleApiError(BuildContext context, DioException e, String prefix) {
-  final errorMessage =
-      e.response?.data?['message'] ??
-      e.response?.statusMessage ??
-      e.message ??
-      "Unknown error occurred";
+  try {
+    String errorMessage = "Unknown error occurred";
 
-  // ✅ Print detailed error for debugging
-  print("⚠️ $prefix");
-  print("Status Code: ${e.response?.statusCode}");
-  print("Error Message: $errorMessage");
-  print("Stack Trace: ${e.stackTrace}");
+    // ✅ FIXED: Safely extract error message from response
+    if (e.response?.data != null) {
+      final responseData = e.response!.data;
 
-  // ✅ Show user-friendly error message
-  showErrorDialog(context, "$prefix: $errorMessage");
+      // Check if response data is a Map (JSON object)
+      if (responseData is Map<String, dynamic>) {
+        errorMessage =
+            responseData['message']?.toString() ??
+            responseData['error']?.toString() ??
+            responseData['details']?.toString() ??
+            e.response?.statusMessage ??
+            e.message ??
+            "Unknown error occurred";
+      }
+      // Check if response data is a String
+      else if (responseData is String) {
+        errorMessage = responseData;
+      }
+      // Check if response data is a List (less common but possible)
+      else if (responseData is List && responseData.isNotEmpty) {
+        // If it's a list of maps, try to get message from first item
+        if (responseData.first is Map<String, dynamic>) {
+          final firstItem = responseData.first as Map<String, dynamic>;
+          errorMessage =
+              firstItem['message']?.toString() ??
+              firstItem['error']?.toString() ??
+              responseData.toString();
+        } else {
+          errorMessage = responseData.toString();
+        }
+      }
+      // Fallback for other data types
+      else {
+        errorMessage = responseData.toString();
+      }
+    }
+    // No response data, use DioException properties
+    else {
+      errorMessage =
+          e.response?.statusMessage ?? e.message ?? "Network error occurred";
+    }
+
+    // ✅ Print detailed error for debugging
+    print("⚠️ $prefix");
+    print("Status Code: ${e.response?.statusCode}");
+    print("Response Data Type: ${e.response?.data.runtimeType}");
+    print("Response Data: ${e.response?.data}");
+    print("Error Message: $errorMessage");
+    print("Stack Trace: ${e.stackTrace}");
+
+    // ✅ Show user-friendly error message
+    if (context.mounted) {
+      showErrorDialog(context, "$prefix: $errorMessage");
+    }
+  } catch (handleError) {
+    // ✅ Ultimate fallback - handle errors in error handler
+    print("❌ Error in _handleApiError: $handleError");
+    print("❌ Original API ERROR [$prefix]: ${e.toString()}");
+
+    if (context.mounted) {
+      showErrorDialog(
+        context,
+        "An unexpected error occurred. Please try again.",
+      );
+    }
+  }
 }

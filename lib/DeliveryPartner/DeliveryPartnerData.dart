@@ -1,56 +1,54 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
+import '../Apis/delivery.Person.dart';
 
 class DeliveryPartnerData {
-  // Personal Information
+  // ------------------- Personal Information -------------------
   String? firstName;
   String? lastName;
   String? email;
   String? password;
-  String? phone; // Changed from mobileNumber to phone
-  String? whatsapp; // Changed from whatsappNumber to whatsapp
-  bool? sameWhatsapp; // Added - missing field from React
+  String? phone;
+  String? whatsapp;
+  bool? sameWhatsapp;
   String? dateOfBirth;
   String? city;
   String? address;
   List<String> languages = [];
   File? profileImage;
-  String? profilePhotoUrl; // Added - missing field from React
+  String? profilePhotoUrl;
 
-  // Document URLs (from React data)
-  String? aadhaarFrontUrl; // Added - missing field from React
-  String? aadhaarBackUrl; // Added - missing field from React
-  String? panCardUrl; // Added - missing field from React
-  String? licenseUrl; // Added - missing field from React
-  String? rcBookUrl; // Added - missing field from React
-  String? passbookUrl; // Added - missing field from React
+  // ------------------- Document URLs -------------------
+  String? aadhaarFrontUrl;
+  String? aadhaarBackUrl;
+  String? panCardUrl;
+  String? licenseUrl;
+  String? rcBookUrl;
+  String? passbookUrl;
 
-  // Personal Documents (local files)
+  // ------------------- Local Files for Documents -------------------
   File? aadharFrontImage;
   File? aadharBackImage;
   File? panFrontImage;
-  // Removed panBackImage as it's not in React data
 
-  // Vehicle Details
+  // ------------------- Vehicle Details -------------------
   String? vehicleType;
-  String? vehicleNumber;
-  String? drivingLicenseNumber; // Added - missing field from React
-  // Removed vehicleModel as it's not in React data
+  String? vehicleNumber; // will be mapped to vehicleRegNo for backend
+  String? drivingLicenseNumber;
   File? vehicleRcImage;
   File? drivingLicenseImage;
 
-  // Bank Account Details
+  // ------------------- Bank Account Details -------------------
   String? bankName;
   String? accountNumber;
   String? ifscCode;
   String? accountHolderName;
-  String? upiId; // Added - missing field from React
+  String? upiId;
   File? bankStatementImage;
-
-  // Removed Emergency Details as they're not in React data
 
   DeliveryPartnerData();
 
-  // Method to print all data
+  // ------------------- Print All Data -------------------
   void printAllData() {
     print("=== DELIVERY PARTNER DATA ===");
     print("📋 Personal Information:");
@@ -98,9 +96,10 @@ class DeliveryPartnerData {
     print("=============================");
   }
 
-  // Method to convert to JSON (matching React structure)
+  // ------------------- Convert to JSON -------------------
   Map<String, dynamic> toJson() {
     return {
+      // Personal Information
       'firstName': firstName,
       'lastName': lastName,
       'email': email,
@@ -110,18 +109,24 @@ class DeliveryPartnerData {
       'city': city,
       'address': address,
       'dateOfBirth': dateOfBirth,
-      'languages': languages,
+      'languages': languages, // remains as a List<String>
       'password': password,
       'profilePhotoUrl': profilePhotoUrl,
+
+      // Document URLs
       'aadhaarFrontUrl': aadhaarFrontUrl,
       'aadhaarBackUrl': aadhaarBackUrl,
       'panCardUrl': panCardUrl,
       'licenseUrl': licenseUrl,
       'rcBookUrl': rcBookUrl,
       'passbookUrl': passbookUrl,
+
+      // Vehicle Details
       'vehicleType': vehicleType,
-      'vehicleNumber': vehicleNumber,
+      'vehicleRegNo': vehicleNumber, // ✅ Backend expects vehicleRegNo
       'drivingLicenseNumber': drivingLicenseNumber,
+
+      // Bank Details
       'accountHolderName': accountHolderName,
       'accountNumber': accountNumber,
       'bankName': bankName,
@@ -129,4 +134,90 @@ class DeliveryPartnerData {
       'upiId': upiId,
     };
   }
+
+  // ------------------- Submit Data to API -------------------
+  Future<void> submitData(BuildContext context) async {
+    try {
+      // Convert current object to JSON
+      final data = toJson();
+      print("FINAL PAYLOAD BEING SENT: $data");
+
+      // Make the API call
+      final response = await deliveryRegister(context, data);
+
+      // Handle the API response
+      if (response.isNotEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Registration Successful!")),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Failed to register. Please try again."),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print("Submit Data Error: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error occurred: $e")));
+      }
+    }
+  }
 }
+
+// ------------------- API Function -------------------
+
+// // ------------------- API Error Handler -------------------
+// void _handleApiError(BuildContext context, DioException e, String message) {
+//   try {
+//     String errorMessage = 'Unknown error';
+
+//     // ✅ FIXED: Safely extract error message
+//     if (e.response?.data != null) {
+//       final responseData = e.response!.data;
+
+//       if (responseData is Map<String, dynamic>) {
+//         // If response data is a Map, try to get message
+//         errorMessage =
+//             responseData['message']?.toString() ??
+//             responseData['error']?.toString() ??
+//             e.message ??
+//             'Unknown error';
+//       } else if (responseData is String) {
+//         // If response data is a String
+//         errorMessage = responseData;
+//       } else {
+//         // If response data is something else, use the DioException message
+//         errorMessage = e.message ?? 'Unknown error';
+//       }
+//     } else {
+//       // No response data, use the DioException message
+//       errorMessage = e.message ?? 'Unknown error';
+//     }
+
+//     print("API ERROR [$message]: $errorMessage");
+
+//     if (context.mounted) {
+//       ScaffoldMessenger.of(
+//         context,
+//       ).showSnackBar(SnackBar(content: Text(errorMessage)));
+//     }
+//   } catch (handleError) {
+//     // ✅ ADDED: Fallback error handling
+//     print("Error in _handleApiError: $handleError");
+//     print("Original API ERROR [$message]: ${e.toString()}");
+
+//     if (context.mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text("An error occurred. Please try again.")),
+//       );
+//     }
+//   }
+// }
