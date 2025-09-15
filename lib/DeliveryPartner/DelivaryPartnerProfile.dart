@@ -113,38 +113,37 @@ class _DeliveryPartnerProfileState extends State<DeliveryPartnerProfile> {
                   const SizedBox(height: 20),
 
                   // Earnings Display
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.green.shade100),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.currency_rupee,
-                          color: Colors.green,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          earnings.toStringAsFixed(2),
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
+                  // Container(
+                  //   margin: const EdgeInsets.symmetric(horizontal: 16),
+                  //   padding: const EdgeInsets.symmetric(
+                  //     horizontal: 20,
+                  //     vertical: 14,
+                  //   ),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.green.shade50,
+                  //     borderRadius: BorderRadius.circular(10),
+                  //     border: Border.all(color: Colors.green.shade100),
+                  //   ),
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.center,
+                  //     children: [
+                  //       const Icon(
+                  //         Icons.currency_rupee,
+                  //         color: Colors.green,
+                  //         size: 28,
+                  //       ),
+                  //       const SizedBox(width: 4),
+                  //       Text(
+                  //         earnings.toStringAsFixed(2),
+                  //         style: const TextStyle(
+                  //           fontSize: 24,
+                  //           fontWeight: FontWeight.bold,
+                  //           color: Colors.green,
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
                   const SizedBox(height: 30),
 
                   // Options Section
@@ -168,7 +167,7 @@ class _DeliveryPartnerProfileState extends State<DeliveryPartnerProfile> {
                   _buildOptionTile(
                     context,
                     icon: Icons.currency_rupee,
-                    label: "Earnings Details",
+                    label: "Earnings",
                     onTap: () {
                       Navigator.push(
                         context,
@@ -180,12 +179,13 @@ class _DeliveryPartnerProfileState extends State<DeliveryPartnerProfile> {
                   ),
                   _buildOptionTile(
                     context,
-                    icon: Icons.account_balance,
-                    label: "Bank Details",
+                    icon: Icons.receipt_long, // Perfect for order history
+                    label: "Order History",
                     onTap: () {
-                      // TODO: Navigate to bank details screen
+                      // TODO: Navigate to order history screen
                     },
                   ),
+
                   _buildOptionTile(
                     context,
                     icon: Icons.headset_mic,

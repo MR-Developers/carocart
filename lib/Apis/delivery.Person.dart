@@ -357,7 +357,7 @@ Future<Map<String, dynamic>> getDeliveryEarnings(
         if (to != null) "to": to,
       },
     );
-    return response.data;
+    return {"data": response.data};
   } on DioException catch (e) {
     _handleApiError(context, e, "Get Earnings Error");
     return {};
