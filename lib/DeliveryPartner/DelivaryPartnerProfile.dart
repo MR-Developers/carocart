@@ -1,3 +1,4 @@
+import 'package:carocart/DeliveryPartner/DelivaryOrderHistory.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Apis/delivery.Person.dart';
@@ -182,7 +183,12 @@ class _DeliveryPartnerProfileState extends State<DeliveryPartnerProfile> {
                     icon: Icons.receipt_long, // Perfect for order history
                     label: "Order History",
                     onTap: () {
-                      // TODO: Navigate to order history screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DeliveryOrderHistory(),
+                        ),
+                      );
                     },
                   ),
 
