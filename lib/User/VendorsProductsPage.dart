@@ -29,6 +29,8 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
   final ScrollController _scrollController = ScrollController();
   final Map<String, GlobalKey> _categoryKeys = {}; // category -> key
   List<Map<String, dynamic>> allProducts = [];
+  String filterType = "all"; // values: "all", "veg", "nonveg"
+
   @override
   void initState() {
     super.initState();
@@ -53,7 +55,7 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
     try {
       final res = await getVendorProductsGrouped(widget.vendorId);
       final cart = await CartService.getCart();
-      if (cart.length != 0) {
+      if (cart.isNotEmpty) {
         final firstEntry = cart.entries.first;
         final product = await ProductService.getProductById(firstEntry.key);
         if (product != null) {
@@ -301,11 +303,19 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
                   ),
                   child: Column(
                     children: allProducts
-                        .where(
-                          (p) => p["name"].toString().toLowerCase().contains(
-                            _searchController.text.toLowerCase(),
-                          ),
-                        )
+                        .where((p) {
+                          final matchesSearch = p["name"]
+                              .toString()
+                              .toLowerCase()
+                              .contains(_searchController.text.toLowerCase());
+
+                          final matchesFilter =
+                              (filterType == "veg" && p["veg"] == true) ||
+                              (filterType == "nonveg" && p["veg"] == false) ||
+                              (filterType == "all");
+
+                          return matchesSearch && matchesFilter;
+                        })
                         .map(
                           (p) => InkWell(
                             onTap: () {
@@ -428,6 +438,48 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
                     ),
                   ),
                 ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ChoiceChip(
+                      label: Row(
+                        children: const [
+                          Icon(Icons.circle, color: Colors.green, size: 12),
+                          SizedBox(width: 6),
+                          Text("Veg"),
+                        ],
+                      ),
+                      selected: filterType == "veg",
+                      onSelected: (selected) {
+                        setState(() => filterType = selected ? "veg" : "all");
+                      },
+                      selectedColor: Colors.green.shade100,
+                    ),
+                    const SizedBox(width: 10),
+                    ChoiceChip(
+                      label: Row(
+                        children: const [
+                          Icon(Icons.circle, color: Colors.red, size: 12),
+                          SizedBox(width: 6),
+                          Text("Non-Veg"),
+                        ],
+                      ),
+                      selected: filterType == "nonveg",
+                      onSelected: (selected) {
+                        setState(
+                          () => filterType = selected ? "nonveg" : "all",
+                        );
+                      },
+                      selectedColor: Colors.red.shade100,
+                    ),
+                  ],
+                ),
+              ),
 
               // Product Categories and Products
               ...groupedProducts.entries.map((categoryEntry) {
@@ -454,7 +506,11 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
                       const SizedBox(height: 8),
                       ...subcats.entries.map((subEntry) {
                         final subcatName = subEntry.key;
-                        final products = subEntry.value as List;
+                        final products = (subEntry.value as List).where((p) {
+                          if (filterType == "veg") return p["veg"] == true;
+                          if (filterType == "nonveg") return p["veg"] == false;
+                          return true; // all
+                        }).toList();
                         final subcatKey = "$categoryName|$subcatName";
 
                         _subcategoryKeys[subcatKey] ??= GlobalKey();
