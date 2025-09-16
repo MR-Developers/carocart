@@ -23,7 +23,7 @@ class _DelivaryParterHomeScafoldState extends State<DelivaryParterHomeScafold> {
   // Screens for each tab
   final List<Widget> _screens = const [
     DelivaryParterHome(),
-    DelivaryParterOrder(),
+    DeliveryPartnerOrder(),
     DeliveryPartnerProfile(),
   ];
 
