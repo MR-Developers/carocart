@@ -12,7 +12,7 @@ class AppNavbar extends StatefulWidget implements PreferredSizeWidget {
   State<AppNavbar> createState() => _AppNavbarState();
 
   @override
-  Size get preferredSize => const Size.fromHeight(70);
+  Size get preferredSize => const Size.fromHeight(80);
 }
 
 class _AppNavbarState extends State<AppNavbar> {
@@ -31,7 +31,7 @@ class _AppNavbarState extends State<AppNavbar> {
   Future<void> _loadDefaultAddress() async {
     try {
       final addresses = await AddressService.getMyAddresses(context);
-      if (!mounted) return; // <- prevent setState after dispose
+      if (!mounted) return;
 
       final defaultAddress = addresses.firstWhere(
         (a) => a["isDefault"] == true,
@@ -83,74 +83,151 @@ class _AppNavbarState extends State<AppNavbar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      elevation: 2,
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white,
-      foregroundColor: Colors.black,
-      titleSpacing: 0,
       automaticallyImplyLeading: false,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      ),
+      titleSpacing: 0,
       title: Padding(
-        padding: const EdgeInsets.only(left: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
         child: Row(
           children: [
-            // Location picker
-            InkWell(
-              onTap: _pickLocation,
-              child: Row(
-                children: [
-                  const Icon(Icons.location_on, color: Colors.green, size: 32),
-                  if (isLoadingAddress)
-                    const Text("Loading...", style: TextStyle(fontSize: 16))
-                  else
-                    Text(
-                      (selectedLocation != null &&
-                              selectedLocation!.length > 25)
-                          ? "${selectedLocation!.substring(0, 25)}..."
-                          : selectedLocation ?? "Choose location",
-                      style: const TextStyle(fontSize: 16),
+            // Location Selector
+            Expanded(
+              child: InkWell(
+                onTap: _pickLocation,
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.white, Color(0xFFE8F5E9)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  const Icon(Icons.keyboard_arrow_down, size: 20),
-                ],
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.green,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: isLoadingAddress
+                            ? const Text(
+                                "Fetching your location...",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black54,
+                                ),
+                              )
+                            : Text(
+                                selectedLocation != null
+                                    ? (selectedLocation!.length > 28
+                                          ? "${selectedLocation!.substring(0, 28)}..."
+                                          : selectedLocation!)
+                                    : "Choose your location",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                      ),
+                      const Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 22,
+                        color: Colors.black54,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const Spacer(),
-            // Cart
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: ValueListenableBuilder<int>(
-                valueListenable: CartService.cartCountNotifier,
-                builder: (context, count, _) {
-                  return Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.shopping_bag_rounded,
-                          color: Colors.black54,
-                        ),
-                        onPressed: () {
+
+            const SizedBox(width: 12),
+
+            // Cart with badge
+            ValueListenableBuilder<int>(
+              valueListenable: CartService.cartCountNotifier,
+              builder: (context, count, _) {
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Material(
+                      color: Colors.orange.shade400,
+                      borderRadius: BorderRadius.circular(16),
+                      elevation: count > 0 ? 6 : 2,
+                      shadowColor: Colors.orangeAccent.withOpacity(0.5),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
                           Navigator.pushNamed(context, "/usercart");
                         },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Icon(
+                            Icons.shopping_bag,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
                       ),
-                      if (count > 0)
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
+                    ),
+                    if (count > 0)
+                      Positioned(
+                        right: -4,
+                        top: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.redAccent.withOpacity(0.6),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Text(
                             count > 99 ? "99+" : count.toString(),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                    ],
-                  );
-                },
-              ),
+                      ),
+                  ],
+                );
+              },
             ),
           ],
         ),

@@ -31,11 +31,106 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
   List<Map<String, dynamic>> allProducts = [];
   String filterType = "all"; // values: "all", "veg", "nonveg"
 
+  OverlayEntry? _searchOverlay;
+  final LayerLink _searchLink = LayerLink();
+  final List<Color> avatarColors = [
+    Colors.green.shade400,
+    Colors.blue.shade400,
+    Colors.orange.shade400,
+    Colors.purple.shade400,
+  ];
   @override
   void initState() {
     super.initState();
     fetchVendor();
     fetchProducts();
+  }
+
+  @override
+  void dispose() {
+    _searchOverlay?.remove();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showSearchOverlay(String query) {
+    // Remove previous overlay if exists
+    _searchOverlay?.remove();
+    _searchOverlay = null;
+
+    if (query.isEmpty) return;
+
+    final filteredProducts = allProducts.where((p) {
+      return p["name"].toString().toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    _searchOverlay = OverlayEntry(
+      builder: (context) => Positioned(
+        width: MediaQuery.of(context).size.width - 24, // match padding
+        child: CompositedTransformFollower(
+          link: _searchLink,
+          showWhenUnlinked: false,
+          offset: const Offset(0, 60), // height of the TextField + margin
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: filteredProducts.isEmpty
+                  ? Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          "No results found",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: filteredProducts.length,
+                      itemBuilder: (ctx, idx) {
+                        final p = filteredProducts[idx];
+                        return ListTile(
+                          title: Text(p["name"]),
+                          trailing: Icon(Icons.arrow_forward_ios),
+                          onTap: () {
+                            _searchController.clear();
+                            _searchOverlay?.remove();
+                            _searchOverlay = null;
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ProductDetailsPage(product: p),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_searchOverlay!);
   }
 
   Future<void> fetchVendor() async {
@@ -162,70 +257,145 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
   void _showCategoryMenu() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                const Text(
-                  "Menu",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.5, // shows half the screen initially
+            minChildSize: 0.4,
+            maxChildSize: 0.6,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                const SizedBox(height: 12),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        width: 50,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      "Menu",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
-                // Scrollable list of subcategories
-                Expanded(
-                  child: ListView(
-                    children: groupedProducts.entries.expand((categoryEntry) {
-                      final categoryName = categoryEntry.key;
-                      final subcats = categoryEntry.value as Map;
+                    // Scrollable list
+                    Expanded(
+                      child: ListView(
+                        controller: scrollController,
+                        children: groupedProducts.entries.expand((
+                          categoryEntry,
+                        ) {
+                          final categoryName = categoryEntry.key;
+                          final subcats = categoryEntry.value as Map;
 
-                      return subcats.keys.map((subcatName) {
-                        final itemCount = (subcats[subcatName] as List).length;
+                          return subcats.keys.map((subcatName) {
+                            final itemCount =
+                                (subcats[subcatName] as List).length;
 
-                        return Column(
-                          children: [
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(
-                                subcatName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _scrollToSubcategory(
+                                    categoryName,
+                                    subcatName,
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.shade200,
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor:
+                                            avatarColors[subcats.keys
+                                                    .toList()
+                                                    .indexOf(subcatName) %
+                                                avatarColors.length],
+                                        child: Text(
+                                          subcatName[0].toUpperCase(),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              subcatName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              "$itemCount items",
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 16,
+                                        color: Colors.grey,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              subtitle: Text(
-                                "$itemCount items",
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              onTap: () {
-                                Navigator.pop(context);
-                                _scrollToSubcategory(categoryName, subcatName);
-                              },
-                              trailing: const Icon(
-                                Icons.arrow_forward_ios,
-                                size: 16,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const Divider(
-                              height: 1,
-                            ), // 👈 Divider after every tile
-                          ],
-                        );
-                      });
-                    }).toList(),
-                  ),
+                            );
+                          });
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
         );
       },
@@ -273,20 +443,29 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(12),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: "Search products...",
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: CompositedTransformTarget(
+                  link: _searchLink,
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search products...",
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
+                    onChanged: (query) {
+                      if (query.isNotEmpty)
+                        _showSearchOverlay(query);
+                      else {
+                        // Remove overlay if text is empty
+                        _searchOverlay?.remove();
+                        _searchOverlay = null;
+                      }
+                    },
                   ),
-                  onChanged: (query) {
-                    setState(() {}); // refresh search suggestions
-                  },
                 ),
               ),
 
@@ -344,95 +523,157 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
                 ),
               if (vendor != null)
                 Card(
-                  margin: const EdgeInsets.all(12),
-                  color: Colors.white,
+                  elevation: 6,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  elevation: 1,
-                  child: Padding(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color.fromARGB(255, 255, 207, 111),
+                          Colors.white,
+                          Colors.white,
+                          Colors.white,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(color: Colors.orange.withOpacity(0.2)),
+                    ),
                     padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Stack(
                       children: [
-                        if (vendor?["profileImageUrl"] != null)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              vendor!["profileImageUrl"],
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        else
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.store,
-                              size: 40,
-                              color: Colors.grey,
-                            ),
+                        // Optional: floating icons in background
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          child: Icon(
+                            Icons.local_grocery_store,
+                            size: 40,
+                            color: Colors.white.withOpacity(0.5),
                           ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                vendor?["companyName"] ?? "Restaurant",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              if (vendor?["city"] != null)
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Icon(
-                                      Icons.location_on,
-                                      size: 16,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        vendor!["city"],
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade700,
+                        ),
+
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Vendor image
+                            Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 45,
+                                  backgroundColor: Colors.white,
+                                  child: vendor?["profileImageUrl"] != null
+                                      ? ClipOval(
+                                          child: Image.network(
+                                            vendor!["profileImageUrl"],
+                                            width: 90,
+                                            height: 90,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.store,
+                                          size: 40,
+                                          color: Colors.grey,
                                         ),
+                                ),
+                                // Open badge
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.green.withOpacity(0.3),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Text(
+                                      "Open Now",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.access_time,
-                                    size: 16,
-                                    color: Colors.grey,
                                   ),
-                                  const SizedBox(width: 6),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 16),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    "30 - 40 Mins",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade700,
+                                    vendor?["companyName"] ?? "Restaurant",
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange,
                                     ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          vendor?["city"] ?? "City",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey.shade800,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.access_time,
+                                        size: 16,
+                                        color: Colors.green,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "30 - 40 Mins",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -495,15 +736,6 @@ class _VendorProductsPageState extends State<VendorProductsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        categoryName,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       ...subcats.entries.map((subEntry) {
                         final subcatName = subEntry.key;
                         final products = (subEntry.value as List).where((p) {

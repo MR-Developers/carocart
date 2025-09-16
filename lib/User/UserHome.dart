@@ -213,7 +213,7 @@ class _UserHomeState extends State<UserHome> {
     final vendors = filteredVendors;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       appBar: AppNavbar(
         onLocationChanged: (location, newLat, newLng) {
           setState(() {
@@ -230,205 +230,359 @@ class _UserHomeState extends State<UserHome> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Icon(Icons.location_on, size: 50, color: Colors.red),
-                  SizedBox(height: 8),
-                  Text("Choose your location to view vendors"),
+                  Icon(Icons.location_on, size: 60, color: Colors.redAccent),
+                  SizedBox(height: 10),
+                  Text(
+                    "Choose your location to view vendors",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
+                    ),
+                  ),
                 ],
               ),
             )
-          : isLoadingVendors || isLoadingAddress
+          : isLoadingAddress
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Banner Scroller
-                  if (banners.isNotEmpty)
-                    SizedBox(
-                      height: 170,
-                      child: SizedBox(
-                        height: 150,
-                        child: PageView.builder(
-                          itemCount: banners.length,
-                          controller: _bannerController,
-                          itemBuilder: (context, index) {
-                            final banner = banners[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.asset(
-                                  banner["imageUrl"]!,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+          : Stack(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white,
+                        Color.fromARGB(255, 255, 250, 242), // soft orange
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
+                  ),
+                ),
 
-                  const SizedBox(height: 20),
-                  // Subcategories
-                  if (subCategories.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Background grocery icons
+                Positioned.fill(
+                  child: Opacity(
+                    opacity: 0.35, // subtle
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            mainAxisSpacing: 30,
+                            crossAxisSpacing: 30,
+                          ),
+                      itemCount: 20, // number of icons
+                      itemBuilder: (context, index) {
+                        return const Icon(
+                          Icons.shopping_cart, // you can mix other icons too
+                          size: 50,
+                          color: Colors.white,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Banner Scroller
+                      if (banners.isNotEmpty)
+                        Column(
                           children: [
-                            const Text(
-                              "Categories",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                            SizedBox(
+                              height: 180,
+                              child: PageView.builder(
+                                itemCount: banners.length,
+                                controller: _bannerController,
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    _currentBannerIndex = index;
+                                  });
+                                },
+
+                                itemBuilder: (context, index) {
+                                  final banner = banners[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(18),
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          Image.asset(
+                                            banner["imageUrl"]!,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Colors.black.withOpacity(0.3),
+                                                  Colors.transparent,
+                                                ],
+                                                begin: Alignment.bottomCenter,
+                                                end: Alignment.topCenter,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AllCategoriesPage(
-                                      vendorIds: vendorIdList,
-                                    ),
+                            const SizedBox(height: 12),
+                            // Small dot indicator
+                            // Small dot indicator
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                banners.length,
+                                (index) => AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 3,
                                   ),
-                                );
-                              },
-                              child: const Text("View All"),
+                                  height: 8,
+                                  width: _currentBannerIndex == index
+                                      ? 16
+                                      : 8, // active dot wider
+                                  decoration: BoxDecoration(
+                                    color: _currentBannerIndex == index
+                                        ? Colors.orangeAccent
+                                        : Colors.grey.withOpacity(
+                                            0.5,
+                                          ), // inactive grey
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-
-                        const SizedBox(height: 12),
-                        isLoadingSubs
-                            ? const Center(child: CircularProgressIndicator())
-                            : SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: subCategories.map((sub) {
-                                    final id = sub["id"];
-                                    final name = sub["name"] ?? "";
-                                    final imageUrl = sub["imageUrl"];
-                                    final isSelected =
-                                        id == selectedSubCategoryId;
-
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 16.0,
-                                      ),
-                                      child: InkWell(
-                                        onTap: () {
-                                          _filterBySubCategory(id);
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                border: isSelected
-                                                    ? Border.all(
-                                                        color: Colors.orange,
-                                                        width: 3,
-                                                      )
-                                                    : null,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.1),
-                                                    blurRadius: 6,
-                                                    offset: const Offset(0, 3),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: CircleAvatar(
-                                                radius: 32,
-                                                backgroundColor:
-                                                    Colors.grey[200],
-                                                backgroundImage:
-                                                    (imageUrl != null &&
-                                                        imageUrl.isNotEmpty)
-                                                    ? NetworkImage(imageUrl)
-                                                    : null,
-                                                child:
-                                                    (imageUrl == null ||
-                                                        imageUrl.isEmpty)
-                                                    ? Text(
-                                                        name.isNotEmpty
-                                                            ? name[0]
-                                                                  .toUpperCase()
-                                                            : "?",
-                                                        style: const TextStyle(
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black54,
-                                                        ),
-                                                      )
-                                                    : null,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            SizedBox(
-                                              width: 80,
-                                              child: Text(
-                                                name,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: isSelected
-                                                      ? Colors.orange
-                                                      : Colors.black,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          ],
+                      // Subcategories
+                      if (subCategories.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Categories",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AllCategoriesPage(
+                                          vendorIds: vendorIdList,
                                         ),
                                       ),
                                     );
-                                  }).toList(),
+                                  },
+                                  child: const Text(
+                                    "View All",
+                                    style: TextStyle(
+                                      color: Colors.orange,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                      ],
-                    ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            isLoadingSubs
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : SizedBox(
+                                    height: 120,
+                                    child: ListView.separated(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: subCategories.length,
+                                      separatorBuilder: (_, __) =>
+                                          const SizedBox(width: 16),
+                                      itemBuilder: (context, index) {
+                                        final sub = subCategories[index];
+                                        final id = sub["id"];
+                                        final name = sub["name"] ?? "";
+                                        final imageUrl = sub["imageUrl"];
+                                        final isSelected =
+                                            id == selectedSubCategoryId;
 
-                  const SizedBox(height: 20),
-
-                  // Vendors List
-                  Text(
-                    selectedTab == "FOOD"
-                        ? "Featured Restaurants"
-                        : "Featured Grocery Stores",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  vendors.isEmpty
-                      ? const Text("No vendors found nearby.")
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: vendors.length,
-                          itemBuilder: (context, index) {
-                            final v = vendors[index];
-                            return VendorCard(
-                              vendor: v,
-                              onTap: () {
-                                print("Navigate to vendor ${v["id"]}");
-                              },
-                            );
-                          },
+                                        return GestureDetector(
+                                          onTap: () => _filterBySubCategory(id),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                              milliseconds: 300,
+                                            ),
+                                            curve: Curves.easeOut,
+                                            width: 80,
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(
+                                                    3,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    gradient: isSelected
+                                                        ? const LinearGradient(
+                                                            colors: [
+                                                              Colors.orange,
+                                                              Colors.deepOrange,
+                                                            ],
+                                                            begin: Alignment
+                                                                .topLeft,
+                                                            end: Alignment
+                                                                .bottomRight,
+                                                          )
+                                                        : null,
+                                                    boxShadow: [
+                                                      if (isSelected)
+                                                        BoxShadow(
+                                                          color: Colors.orange
+                                                              .withOpacity(0.5),
+                                                          blurRadius: 10,
+                                                          spreadRadius: 2,
+                                                        ),
+                                                    ],
+                                                  ),
+                                                  child: CircleAvatar(
+                                                    radius: isSelected
+                                                        ? 38
+                                                        : 34,
+                                                    backgroundColor:
+                                                        Colors.grey[200],
+                                                    backgroundImage:
+                                                        (imageUrl != null &&
+                                                            imageUrl.isNotEmpty)
+                                                        ? NetworkImage(imageUrl)
+                                                        : null,
+                                                    child:
+                                                        (imageUrl == null ||
+                                                            imageUrl.isEmpty)
+                                                        ? Text(
+                                                            name.isNotEmpty
+                                                                ? name[0]
+                                                                      .toUpperCase()
+                                                                : "?",
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 22,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Colors
+                                                                      .black54,
+                                                                ),
+                                                          )
+                                                        : null,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected
+                                                        ? Colors.orange
+                                                              .withOpacity(0.1)
+                                                        : Colors.grey[100],
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    name,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: isSelected
+                                                          ? Colors.deepOrange
+                                                          : Colors.black87,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                          ],
                         ),
-                ],
-              ),
+
+                      const SizedBox(height: 10),
+
+                      // Vendors List
+                      Text(
+                        selectedTab == "FOOD"
+                            ? "🍔 Featured Restaurants"
+                            : "🛒 Featured Grocery Stores",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      isLoadingVendors
+                          ? ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount:
+                                  5, // show 5 shimmer cards while loading
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 14),
+                              itemBuilder: (_, __) => const VendorCardShimmer(),
+                            )
+                          : vendors.isEmpty
+                          ? const Text("No vendors found nearby.")
+                          : ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: vendors.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 14),
+                              itemBuilder: (context, index) {
+                                final v = vendors[index];
+                                return VendorCard(
+                                  vendor: v,
+                                  onTap: () {
+                                    print("Navigate to vendor ${v["id"]}");
+                                  },
+                                );
+                              },
+                            ),
+                    ],
+                  ),
+                ),
+              ],
             ),
     );
   }

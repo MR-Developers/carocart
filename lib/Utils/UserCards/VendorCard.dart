@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class VendorCard extends StatelessWidget {
   final Map<String, dynamic> vendor;
@@ -14,7 +15,6 @@ class VendorCard extends StatelessWidget {
             (v["acceptingOrders"] as String).toLowerCase() == "false")) {
       return false;
     }
-
     if (v["openingTime"] == null || v["closingTime"] == null) return true;
 
     DateTime now = DateTime.now();
@@ -37,7 +37,6 @@ class VendorCard extends StatelessWidget {
       int.parse(closeParts.length > 1 ? closeParts[1] : "0"),
     );
 
-    // overnight support
     if (closeTime.isBefore(openTime)) {
       return now.isAfter(openTime) || now.isBefore(closeTime);
     } else {
@@ -55,11 +54,31 @@ class VendorCard extends StatelessWidget {
     return cleaned;
   }
 
+  String formatClosingTime(String? timeStr, BuildContext context) {
+    if (timeStr == null || timeStr.isEmpty) return "";
+
+    try {
+      // Clean up: "23:30:00:000000" → "23:30:00"
+      String clean = timeStr.split(":").length >= 2
+          ? "${timeStr.split(":")[0]}:${timeStr.split(":")[1]}"
+          : timeStr;
+
+      // Parse into DateTime
+      DateTime dt = DateTime.parse("1970-01-01 $clean:00");
+
+      // Convert to 12h format
+      return TimeOfDay.fromDateTime(dt).format(context);
+    } catch (e) {
+      return timeStr; // fallback
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool open = isVendorOpen(vendor);
-
-    return GestureDetector(
+    // bool open = isVendorOpen(vendor);
+    bool open = true;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
       onTap: () {
         if (open) {
           Navigator.pushNamed(
@@ -68,175 +87,289 @@ class VendorCard extends StatelessWidget {
             arguments: vendor["id"],
           );
         } else {
-          // Optional: show a snackbar/toast
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("This vendor is currently closed.")),
           );
         }
       },
-
-      child: Opacity(
-        opacity: open ? 1.0 : 0.8,
-        child: Stack(
+      child: Card(
+        elevation: 4,
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: open ? Colors.white : Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: open
-                        ? Colors.green.withOpacity(0.15)
-                        : Colors.black.withOpacity(0.05),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
+            // Image section
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
                   ),
-                ],
-                border: Border.all(
-                  color: open ? Colors.black12 : Colors.grey.shade400,
+                  child:
+                      vendor["profileImageUrl"] != null &&
+                          vendor["profileImageUrl"].toString().isNotEmpty
+                      ? Image.network(
+                          vendor["profileImageUrl"],
+                          height: 160,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          height: 160,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(16),
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            (vendor["companyName"] ??
+                                    vendor["firstName"] ??
+                                    "V")
+                                .toString()
+                                .substring(0, 1)
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 42,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepOrange,
+                            ),
+                          ),
+                        ),
                 ),
-              ),
-              margin: const EdgeInsets.all(8),
+
+                // Status Chip
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Chip(
+                    backgroundColor: open ? Colors.green : Colors.red,
+                    label: Text(
+                      open ? "Open Now" : "Closed",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // Info section
+            Padding(
+              padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  //Image / Placeholder
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12),
+                  // Vendor name
+                  Text(
+                    vendor["companyName"] ??
+                        "${vendor["firstName"] ?? ""} ${vendor["lastName"] ?? ""}"
+                            .trim(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
                     ),
-                    child: ColorFiltered(
-                      colorFilter: open
-                          ? const ColorFilter.mode(
-                              Colors.transparent,
-                              BlendMode.multiply,
-                            )
-                          : const ColorFilter.mode(
-                              Colors.grey,
-                              BlendMode.saturation,
-                            ),
-                      child:
-                          vendor["profileImageUrl"] != null &&
-                              vendor["profileImageUrl"].toString().isNotEmpty
-                          ? Image.network(
-                              vendor["profileImageUrl"],
-                              width: double.infinity,
-                              height: 200,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              width: double.infinity,
-                              height: 200,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                (vendor["companyName"] ??
-                                        vendor["firstName"] ??
-                                        "V")
-                                    .toString()
-                                    .substring(0, 1)
-                                    .toUpperCase(),
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                              ),
-                            ),
-                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
 
-                  //Vendor Details
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 4),
+
+                  // Address
+                  if (vendor["addressLine1"] != null)
+                    Row(
                       children: [
-                        Text(
-                          vendor["companyName"] ??
-                              "${vendor["firstName"] ?? ""} ${vendor["lastName"] ?? ""}"
-                                  .trim(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        const Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: Colors.grey,
                         ),
-
-                        if (vendor["addressLine1"] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              cleanAddress(vendor["addressLine1"]),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            cleanAddress(vendor["addressLine1"]),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-
-                        const SizedBox(height: 6),
-
-                        Row(
-                          children: [
-                            Text(
-                              open
-                                  ? "Open"
-                                  : vendor["manualCloseReason"] != null
-                                  ? "Closed Now – ${vendor["manualCloseReason"]}"
-                                  : "Closed Now",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: open ? Colors.green : Colors.red,
-                              ),
-                            ),
-                            if (open && vendor["etaMinutes"] != null)
-                              Text(
-                                " • ${vendor["etaMinutes"]} min",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                          ],
                         ),
                       ],
                     ),
+
+                  const SizedBox(height: 8),
+
+                  // Delivery info
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            size: 16,
+                            color: Colors.orange.shade800,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            open
+                                ? "Opens until ${formatClosingTime(vendor["closingTime"], context)}"
+                                : "Closed",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: open
+                                  ? Colors.orange.shade800
+                                  : Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.star,
+                            size: 16,
+                            color: Colors.amber.shade700,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            vendor["rating"]?.toString() ?? "4.5",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-            //Closed Overlay
-            if (!open)
-              Positioned.fill(
-                child: Center(
-                  child: Transform.translate(
-                    offset: Offset(0, -40),
-                    child: Transform.rotate(
-                      angle: -0.5,
-                      child: Text(
-                        "CLOSED NOW",
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red.withOpacity(0.8),
-                          letterSpacing: 3,
-                        ),
+class VendorCardShimmer extends StatelessWidget {
+  const VendorCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.all(12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image shimmer
+            Shimmer.fromColors(
+              baseColor: Colors.grey[300]!,
+              highlightColor: Colors.grey[100]!,
+              child: Container(
+                height: 160,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Title shimmer
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, right: 8),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  height: 25,
+                  width: 280,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0, right: 8),
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: Container(
+                  height: 16,
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Subtitle shimmer
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 8.0,
+                    right: 8,
+                    bottom: 16,
+                  ),
+                  child: Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 16,
+                      width: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 8.0,
+                    right: 8,
+                    bottom: 16,
+                  ),
+                  child: Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: 16,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
