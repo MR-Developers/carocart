@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class RatingsService {
   static final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "${ApiConstants.baseUrl}:8080/products",
+      baseUrl: "${ApiConstants.prodUrl}/products",
       connectTimeout: const Duration(seconds: 20),
       receiveTimeout: const Duration(seconds: 20),
     ),

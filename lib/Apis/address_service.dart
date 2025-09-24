@@ -8,7 +8,7 @@ class AddressService {
   // ✅ Use only the host + port as baseUrl
   static final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "${ApiConstants.baseUrl}:8080", // host + port only
+      baseUrl: ApiConstants.prodUrl, // host + port only
       connectTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),

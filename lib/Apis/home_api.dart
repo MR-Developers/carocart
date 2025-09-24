@@ -5,7 +5,7 @@ import 'package:carocart/Apis/constants.dart';
 class ApiClient {
   static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "${ApiConstants.baseUrl}:8080",
+      baseUrl: ApiConstants.prodUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {"Content-Type": "application/json"},

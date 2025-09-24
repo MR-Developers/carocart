@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class RazorpayService {
   static final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: "${ApiConstants.baseUrl}:8080/api/payments",
+      baseUrl: "${ApiConstants.prodUrl}/api/payments",
       connectTimeout: const Duration(seconds: 20),
       receiveTimeout: const Duration(seconds: 20),
     ),
