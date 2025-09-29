@@ -1,6 +1,7 @@
 import 'package:carocart/Vendor/Vendor_Home.dart';
 import 'package:carocart/Vendor/Vendor_Order.dart';
 import 'package:carocart/Vendor/Vendor_Products.dart';
+import 'package:carocart/Vendor/Vendor_Profile.dart';
 import 'package:flutter/material.dart';
 
 class VendorWrapper extends StatefulWidget {
@@ -24,7 +25,7 @@ class _VendorWrapperState extends State<VendorWrapper> {
       VendorHomePage(vendorName: widget.vendorName),
       VendorOrderPage(),
       VendorProducts(),
-      ProfilePage(),
+      VendorProfileScreen(),
     ];
   }
 
