@@ -12,6 +12,9 @@ import 'package:carocart/User/UserPagesScaffold.dart';
 import 'package:carocart/User/UserPaymentPage.dart';
 import 'package:carocart/User/UserYourAddresses.dart';
 import 'package:carocart/User/VendorsProductsPage.dart';
+import 'package:carocart/Vendor/Vendor_Home.dart';
+import 'package:carocart/Vendor/Vendor_Login.dart';
+import 'package:carocart/Vendor/Vendor_Wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -95,6 +98,9 @@ class MyApp extends StatelessWidget {
         },
         "/usercontactus": (context) => ContactUsPage(),
         "/userchangepassword": (context) => ChangePasswordPage(),
+        "/vendorwrapper": (context) => VendorWrapper(),
+        "/vendorlogin": (context) => VendorLogin(),
+        "/vendorhome": (context) => VendorHomePage(),
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),
       },
@@ -129,6 +135,8 @@ class _FlashScreenState extends State<FlashScreen> {
         String role = decodedToken["role"] ?? "";
         if (role == "USER") {
           Navigator.pushReplacementNamed(context, "/");
+        } else if (role == "VENDOR") {
+          Navigator.pushReplacementNamed(context, "/vendorwrapper");
         } else {
           prefs.remove("auth_token");
           Navigator.pushReplacementNamed(context, "/login");

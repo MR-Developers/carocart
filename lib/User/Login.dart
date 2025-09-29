@@ -1,3 +1,4 @@
+import 'package:carocart/Apis/google_auth.dart';
 import 'package:carocart/Apis/user_api.dart';
 import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/SignUp.dart';
@@ -213,6 +214,34 @@ class _LoginPageState extends State<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 20),
                   child: GestureDetector(
+                    onTap: () async {
+                      setState(() => isLoading = true);
+
+                      final success = await GoogleAuthHelper.signInWithGoogle();
+
+                      setState(() => isLoading = false);
+
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(AppMessages.loginSuccess),
+                          ),
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CategorySelectionPage(),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(AppMessages.loginFailed),
+                          ),
+                        );
+                      }
+                    },
+
                     child: Padding(
                       padding: const EdgeInsets.only(left: 30.0, right: 30),
                       child: Container(
@@ -247,47 +276,6 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 20),
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 30.0, right: 30),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: () {},
-                            child: const Text(
-                              "Forgot Password?",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ResetPassword(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              'Reset Password',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ),

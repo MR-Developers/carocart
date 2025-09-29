@@ -7,6 +7,9 @@ class RoleSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Fixed card height
+    const double cardHeight = 220;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -37,39 +40,57 @@ class RoleSelectionScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center, // important
                   children: [
-                    Center(
-                      child: RoleCard(
-                        imagePath: 'assets/images/Customer.png',
-                        title: "Customer",
-                        subtitle: "I Want To Shop Groceries",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => OnboardingScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                    // Row for first two
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RoleCard(
+                            imagePath: 'assets/images/Customer.png',
+                            title: "Customer",
+                            subtitle: "I Want To Shop Groceries",
+                            height: cardHeight,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OnboardingScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: RoleCard(
+                            imagePath: 'assets/images/DeliveryPartner.png',
+                            title: "Delivery Partner",
+                            subtitle: "I Want To Deliver Groceries",
+                            height: cardHeight,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DeliveryPartnerLoginScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
-                    Center(
-                      child: RoleCard(
-                        imagePath: 'assets/images/DeliveryPartner.png',
-                        title: "Delivery Partner",
-                        subtitle: "I Want To Deliver Groceries",
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  DeliveryPartnerLoginScreen(),
-                            ),
-                          );
-                        },
-                      ),
+
+                    // Vendor card below, same size
+                    RoleCard(
+                      imagePath: 'assets/images/Vendor.png',
+                      title: "Vendor",
+                      subtitle: "I Want To Sell My Products",
+                      height: cardHeight,
+                      onTap: () {
+                        Navigator.pushNamed(context, "/vendorlogin");
+                      },
                     ),
                   ],
                 ),
@@ -86,6 +107,7 @@ class RoleCard extends StatelessWidget {
   final String imagePath;
   final String title;
   final String subtitle;
+  final double height;
   final VoidCallback onTap;
 
   const RoleCard({
@@ -93,6 +115,7 @@ class RoleCard extends StatelessWidget {
     required this.imagePath,
     required this.title,
     required this.subtitle,
+    required this.height,
     required this.onTap,
   }) : super(key: key);
 
@@ -101,7 +124,9 @@ class RoleCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+        height: height,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: Colors.white,
@@ -117,14 +142,13 @@ class RoleCard extends StatelessWidget {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(imagePath, height: 150),
+            Image.asset(imagePath, height: 100),
             const SizedBox(height: 12),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0D1B2A),
               ),
@@ -132,7 +156,7 @@ class RoleCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
               textAlign: TextAlign.center,
             ),
           ],

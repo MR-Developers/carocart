@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Apis/delivery.Person.dart';
+import 'package:carocart/Utils/delivery_fee.dart';
 
 class DeliveryPartnerOrder extends StatefulWidget {
   const DeliveryPartnerOrder({super.key});
@@ -53,12 +54,15 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
     });
 
     try {
-      final available = await getAvailableOrdersForAssignment(context, token!);
-      final assigned = await getAssignedOrders(context, token!);
+      // Run both API calls in parallel
+      final results = await Future.wait([
+        getAvailableOrdersForAssignment(context, token!),
+        getAssignedOrders(context, token!),
+      ]);
 
       setState(() {
-        availableOrders = available;
-        assignedOrders = assigned;
+        availableOrders = results[0]; // first API
+        assignedOrders = results[1]; // second API
       });
     } finally {
       setState(() {
@@ -242,6 +246,10 @@ class AvailableOrdersScreen extends StatelessWidget {
       itemCount: orders.length,
       itemBuilder: (context, index) {
         final order = orders[index];
+        final vendorLat = (order["vendorLat"] ?? 0.0) as double;
+        final vendorLng = (order["vendorLng"] ?? 0.0) as double;
+        final addressLat = (order["addressLat"] ?? 0.0) as double;
+        final addressLng = (order["addressLng"] ?? 0.0) as double;
         return Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -255,13 +263,21 @@ class AvailableOrdersScreen extends StatelessWidget {
             ),
             subtitle: Text(
               "Qty: ${order["quantity"]}\n"
-              "Address: ${order["deliveryAddress"]}\n"
-              "Status: ${order["deliveryStatus"]}",
+              "Address: ${order["shippingAddress"]}\n"
+              "Status: ${order["status"]}\n"
+              "Customer Name:${order["userName"]}\n"
+              "Customer Phone Number:${order["userPhone"]}\n"
+              "Distance: ${haversineKm(vendorLat, vendorLng, addressLat, addressLng).toStringAsFixed(2)} KM",
             ),
-            trailing: const Icon(
-              Icons.add_circle_outline,
-              size: 24,
-              color: Colors.green,
+            trailing: GestureDetector(
+              onTap: () {
+                print(order);
+              },
+              child: Icon(
+                Icons.add_circle_outline,
+                size: 24,
+                color: Colors.green,
+              ),
             ),
           ),
         );

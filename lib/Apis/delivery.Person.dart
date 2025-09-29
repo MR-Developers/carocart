@@ -42,8 +42,8 @@ class ApiClient {
     return Dio(
       BaseOptions(
         baseUrl: "${ApiConstants.baseUrl}:8080",
-        connectTimeout: const Duration(seconds: 50),
-        receiveTimeout: const Duration(seconds: 50),
+        connectTimeout: const Duration(seconds: 100),
+        receiveTimeout: const Duration(seconds: 100),
         headers: {
           "Content-Type": "application/json",
           if (token != null) "Authorization": "Bearer $token",
