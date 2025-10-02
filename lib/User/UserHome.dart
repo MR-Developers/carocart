@@ -27,7 +27,7 @@ class _UserHomeState extends State<UserHome> {
   bool isLoadingSubs = false;
   bool isLoadingAddress = true;
   String? selectedLocation;
-  PageController _bannerController = PageController(viewportFraction: 1);
+  final PageController _bannerController = PageController(viewportFraction: 1);
   int _currentBannerIndex = 0;
   List<int>? vendorIdList;
   Timer? _bannerTimer;
@@ -245,6 +245,76 @@ class _UserHomeState extends State<UserHome> {
             )
           : isLoadingAddress
           ? const Center(child: CircularProgressIndicator())
+          : (selectedTab == "GROCERY")
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Gradient Container with Shadow - Fresh Green Theme
+                    Container(
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFF38ef7d).withOpacity(0.4),
+                            blurRadius: 30,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.shopping_cart_outlined,
+                        size: 70,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Gradient Text Effect - Green Gradient
+                    ShaderMask(
+                      shaderCallback: (bounds) => LinearGradient(
+                        colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
+                      ).createShader(bounds),
+                      child: Text(
+                        "Coming Soon!",
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                      child: Text(
+                        "We're crafting something amazing! 🎉\nYour grocery shopping experience is about to get a whole lot better.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Color(0xFF64748b),
+                          fontWeight: FontWeight.w500,
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            )
           : Stack(
               children: [
                 Container(
@@ -586,4 +656,18 @@ class _UserHomeState extends State<UserHome> {
             ),
     );
   }
+}
+
+Widget _buildDot({bool isActive = false}) {
+  return Container(
+    width: isActive ? 24 : 8,
+    height: 8,
+    decoration: BoxDecoration(
+      gradient: isActive
+          ? LinearGradient(colors: [Color(0xFF667eea), Color(0xFF764ba2)])
+          : null,
+      color: isActive ? null : Color(0xFFe2e8f0),
+      borderRadius: BorderRadius.circular(4),
+    ),
+  );
 }

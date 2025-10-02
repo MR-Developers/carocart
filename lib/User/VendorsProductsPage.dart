@@ -21,6 +21,12 @@ class _VendorProductsPageState extends State<VendorProductsPage>
   Map<String, dynamic>? vendor;
   Map<String, dynamic> groupedProducts = {};
   final Map<String, GlobalKey> _subcategoryKeys = {};
+  final List<Color> avatarColors = [
+    Colors.green.shade400,
+    Colors.blue.shade400,
+    Colors.orange.shade400,
+    Colors.purple.shade400,
+  ];
   Map<int, int> quantities = {};
   bool loading = true;
   bool cartUpdating = false;
@@ -41,18 +47,6 @@ class _VendorProductsPageState extends State<VendorProductsPage>
 
   final FocusNode _searchFocusNode = FocusNode();
   bool _isSearchExpanded = false;
-
-  final List<Color> gradientColors = [
-    const Color(0xFF10B981), // Green
-    const Color(0xFF059669), // Dark Green
-    const Color(0xFFF59E0B), // Orange
-    const Color(0xFFEF6820), // Dark Orange
-    const Color(0xFF22C55E), // Light Green
-    const Color(0xFF16A34A), // Medium Green
-    const Color(0xFFFB923C), // Light Orange
-    const Color(0xFFEA580C), // Deep Orange
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -225,179 +219,151 @@ class _VendorProductsPageState extends State<VendorProductsPage>
   }
 
   void _showCategoryMenu() {
-    HapticFeedback.mediumImpact();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => _buildCategoryBottomSheet(),
-    );
-  }
-
-  Widget _buildCategoryBottomSheet() {
-    return SafeArea(
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.8,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: Column(
-              children: [
-                // Drag handle
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(top: 12, bottom: 20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+      builder: (context) {
+        return SafeArea(
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.5,
+            minChildSize: 0.4,
+            maxChildSize: 0.6,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-
-                // Title
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      Icon(Icons.restaurant_menu, color: Color(0xFF10B981)),
-                      SizedBox(width: 8),
-                      Text(
-                        "Browse Menu",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Menu items
-                Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: _buildMenuItems(),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  List<Widget> _buildMenuItems() {
-    return groupedProducts.entries.expand((categoryEntry) {
-      final categoryName = categoryEntry.key;
-      final subcats = categoryEntry.value as Map;
-
-      return subcats.keys.map((subcatName) {
-        final itemCount = (subcats[subcatName] as List).length;
-        final colorIndex = subcats.keys.toList().indexOf(subcatName);
-
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                gradientColors[colorIndex % gradientColors.length].withOpacity(
-                  0.1,
-                ),
-                Colors.white,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: gradientColors[colorIndex % gradientColors.length]
-                  .withOpacity(0.2),
-            ),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                HapticFeedback.lightImpact();
-                Navigator.pop(context);
-                _scrollToSubcategory(categoryName, subcatName);
-              },
-              child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            gradientColors[colorIndex % gradientColors.length],
-                            gradientColors[(colorIndex + 1) %
-                                gradientColors.length],
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Center(
-                        child: Text(
-                          subcatName[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        width: 50,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(5),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const Text(
+                      "Menu",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Scrollable list
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            subcatName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "$itemCount items",
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
+                      child: ListView(
+                        controller: scrollController,
+                        children: groupedProducts.entries.expand((
+                          categoryEntry,
+                        ) {
+                          final categoryName = categoryEntry.key;
+                          final subcats = categoryEntry.value as Map;
+
+                          return subcats.keys.map((subcatName) {
+                            final itemCount =
+                                (subcats[subcatName] as List).length;
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _scrollToSubcategory(
+                                    categoryName,
+                                    subcatName,
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.shade200,
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor:
+                                            avatarColors[subcats.keys
+                                                    .toList()
+                                                    .indexOf(subcatName) %
+                                                avatarColors.length],
+                                        child: Text(
+                                          subcatName[0].toUpperCase(),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              subcatName,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              "$itemCount items",
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey.shade600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 16,
+                                        color: Colors.grey,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          });
+                        }).toList(),
                       ),
-                    ),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: Color(0xFF94A3B8),
                     ),
                   ],
                 ),
-              ),
-            ),
+              );
+            },
           ),
         );
-      }).toList();
-    }).toList();
+      },
+    );
   }
 
   void _scrollToSubcategory(String category, String subcat) {
