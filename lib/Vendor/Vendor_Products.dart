@@ -11,6 +11,18 @@ class VendorProducts extends StatefulWidget {
 }
 
 class _VendorProductsState extends State<VendorProducts> {
+  // Olive Green Color Palette
+  static const Color oliveGreenPrimary = Color.fromARGB(
+    255,
+    50,
+    138,
+    54,
+  ); // equivalent to Colors.green[700];
+  static const Color oliveGreenDark = Color(0xFF556B2F);
+  static const Color oliveGreenLight = Color(0xFF9ACD32);
+  static const Color oliveGreenPale = Color(0xFFF5F8F0);
+  static const Color oliveGreenAccent = Color(0xFF808000);
+
   List<Map<String, dynamic>> products = [];
   List<Map<String, dynamic>> filtered = [];
   List<Map<String, dynamic>> categories = [];
@@ -117,7 +129,7 @@ class _VendorProductsState extends State<VendorProducts> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+            child: Text("Cancel", style: TextStyle(color: oliveGreenDark)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -151,7 +163,7 @@ class _VendorProductsState extends State<VendorProducts> {
                   Text("Product deleted successfully"),
                 ],
               ),
-              backgroundColor: Colors.green,
+              backgroundColor: oliveGreenPrimary,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -185,42 +197,51 @@ class _VendorProductsState extends State<VendorProducts> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: oliveGreenPale,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: oliveGreenPrimary,
         title: const Text(
           "My Products",
           style: TextStyle(
-            color: Colors.black87,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: Colors.grey[200], height: 1),
+          child: Container(color: oliveGreenDark, height: 2),
         ),
       ),
       body: Column(
         children: [
           // Search and Filters Section
           Container(
-            color: Colors.white,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 // Search Bar
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: oliveGreenPale,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey[300]!),
+                    border: Border.all(color: oliveGreenLight.withOpacity(0.3)),
                   ),
                   child: TextField(
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
+                      prefixIcon: Icon(Icons.search, color: oliveGreenDark),
                       hintText: "Search products...",
                       hintStyle: TextStyle(color: Colors.grey[500]),
                       border: InputBorder.none,
@@ -289,7 +310,7 @@ class _VendorProductsState extends State<VendorProducts> {
                     "${filtered.length} ${filtered.length == 1 ? 'Product' : 'Products'}",
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.grey[700],
+                      color: oliveGreenDark,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -308,7 +329,9 @@ class _VendorProductsState extends State<VendorProducts> {
                       },
                       icon: const Icon(Icons.clear, size: 18),
                       label: const Text("Clear"),
-                      style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                      style: TextButton.styleFrom(
+                        foregroundColor: oliveGreenPrimary,
+                      ),
                     ),
                 ],
               ),
@@ -317,7 +340,12 @@ class _VendorProductsState extends State<VendorProducts> {
           // Products List
           Expanded(
             child: loading
-                ? const Center(child: CircularProgressIndicator(strokeWidth: 3))
+                ? Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: oliveGreenPrimary,
+                    ),
+                  )
                 : filtered.isEmpty
                 ? Center(
                     child: Column(
@@ -326,14 +354,14 @@ class _VendorProductsState extends State<VendorProducts> {
                         Icon(
                           Icons.inventory_2_outlined,
                           size: 80,
-                          color: Colors.grey[300],
+                          color: oliveGreenLight.withOpacity(0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           "No products found",
                           style: TextStyle(
                             fontSize: 18,
-                            color: Colors.grey[600],
+                            color: oliveGreenDark,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -368,7 +396,8 @@ class _VendorProductsState extends State<VendorProducts> {
         },
         icon: const Icon(Icons.add),
         label: const Text("Add Product"),
-        backgroundColor: Colors.blue,
+        backgroundColor: oliveGreenPrimary,
+        foregroundColor: Colors.white,
         elevation: 4,
       ),
     );
@@ -388,13 +417,15 @@ class _VendorProductsState extends State<VendorProducts> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? Colors.blue.withOpacity(0.1)
-              : (isDisabled ? Colors.grey[100] : Colors.grey[100]),
+              ? oliveGreenPrimary.withOpacity(0.15)
+              : (isDisabled ? Colors.grey[100] : oliveGreenPale),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
-                ? Colors.blue
-                : (isDisabled ? Colors.grey[300]! : Colors.grey[300]!),
+                ? oliveGreenPrimary
+                : (isDisabled
+                      ? Colors.grey[300]!
+                      : oliveGreenLight.withOpacity(0.4)),
           ),
         ),
         child: Row(
@@ -404,8 +435,8 @@ class _VendorProductsState extends State<VendorProducts> {
               icon,
               size: 18,
               color: isSelected
-                  ? Colors.blue
-                  : (isDisabled ? Colors.grey[400] : Colors.grey[600]),
+                  ? oliveGreenDark
+                  : (isDisabled ? Colors.grey[400] : oliveGreenAccent),
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -415,8 +446,8 @@ class _VendorProductsState extends State<VendorProducts> {
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   color: isSelected
-                      ? Colors.blue
-                      : (isDisabled ? Colors.grey[400] : Colors.grey[700]),
+                      ? oliveGreenDark
+                      : (isDisabled ? Colors.grey[400] : oliveGreenDark),
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -429,115 +460,168 @@ class _VendorProductsState extends State<VendorProducts> {
 
   Widget _buildProductCard(Map<String, dynamic> p) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
           ),
         ],
+        border: Border.all(color: oliveGreenLight.withOpacity(0.15)),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            // TODO: Open Edit Modal/Dialog
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Product Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    color: Colors.grey[200],
-                    child: p['imageUrl'] != null && p['imageUrl'].isNotEmpty
-                        ? Image.network(
-                            p['imageUrl'],
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey[400],
-                              size: 32,
-                            ),
-                          )
-                        : Icon(
-                            Icons.image_outlined,
-                            color: Colors.grey[400],
-                            size: 32,
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- Product Image ---
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                width: 95,
+                height: 95,
+                color: oliveGreenPale,
+                child: p['imageUrl'] != null && p['imageUrl'].isNotEmpty
+                    ? Image.network(
+                        p['imageUrl'],
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Icon(
+                          Icons.broken_image_outlined,
+                          color: oliveGreenAccent,
+                          size: 32,
+                        ),
+                      )
+                    : Icon(
+                        Icons.image_outlined,
+                        color: oliveGreenAccent,
+                        size: 32,
+                      ),
+              ),
+            ),
 
-                // Product Details
-                Expanded(
-                  child: Column(
+            const SizedBox(width: 14),
+
+            // --- Product Info ---
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name + Actions row
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        p['name'] ?? "Unnamed Product",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      if (p['brand'] != null && p['brand'].isNotEmpty)
-                        Text(
-                          p['brand'],
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      Expanded(
                         child: Text(
-                          "₹${p['price'] ?? 0}",
-                          style: const TextStyle(
+                          p['name'] ?? "Unnamed Product",
+                          style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            fontWeight: FontWeight.w700,
+                            color: oliveGreenDark,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                      ),
+                      Row(
+                        children: [
+                          _actionChip(
+                            icon: Icons.edit_outlined,
+                            color: oliveGreenDark,
+                            onTap: () {
+                              // TODO: edit
+                            },
+                          ),
+                          SizedBox(width: 6),
+                          _actionChip(
+                            icon: Icons.delete_outline,
+                            color: Colors.red[400]!,
+                            onTap: () => _deleteProduct(p['id'].toString()),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ),
+                  // Price + MRP line
+                  Row(
+                    children: [
+                      Text(
+                        "₹${p['price'] ?? 0}",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: oliveGreenDark,
+                        ),
+                      ),
+                      if (p['mrp'] != null) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          "₹${p['mrp']}",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[500],
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
 
-                // Delete Button
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  color: Colors.red[400],
-                  onPressed: () => _deleteProduct(p['id'].toString()),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+                  const SizedBox(height: 6),
+
+                  // Stock + Category
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 4,
+                    children: [
+                      if (p['stock'] != null) _infoChip("Stock: ${p['stock']}"),
+                      if (p['category'] != null)
+                        _infoChip("Category: ${p['category']}"),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ),
+      ),
+    );
+  }
+
+  /// --- Mini action button ---
+  Widget _actionChip({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 18, color: color),
+      ),
+    );
+  }
+
+  /// --- Info chip (stock/category labels) ---
+  Widget _infoChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
       ),
     );
   }
@@ -545,68 +629,262 @@ class _VendorProductsState extends State<VendorProducts> {
   void _showCategoryPicker() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) => Column(
+            children: [
+              // Header Section
+              Container(
+                padding: const EdgeInsets.only(top: 12, bottom: 20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [oliveGreenPale, Colors.white],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Select Category",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
                   ),
-                ],
+                ),
+                child: Column(
+                  children: [
+                    // Drag Handle
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: oliveGreenLight.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Title with Icon
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: oliveGreenPrimary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.category_outlined,
+                            color: oliveGreenDark,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          "Select Category",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: oliveGreenDark,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "${categories.length} available",
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.clear_all),
-                    title: const Text("All Categories"),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _onCatChanged(null);
-                    },
-                  ),
-                  ...categories.map(
-                    (c) => ListTile(
-                      leading: const Icon(Icons.category),
-                      title: Text(c['name']),
-                      selected: selectedCat == c['id'].toString(),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _onCatChanged(c['id'].toString());
-                      },
+
+              // Divider
+              Container(height: 1, color: Colors.grey[200]),
+
+              // List Section
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    // All Categories Option
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      child: Material(
+                        color: selectedCat == null
+                            ? oliveGreenPrimary.withOpacity(0.08)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            _onCatChanged(null);
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: selectedCat == null
+                                    ? oliveGreenPrimary
+                                    : Colors.transparent,
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: selectedCat == null
+                                        ? oliveGreenPrimary
+                                        : oliveGreenPale,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.clear_all,
+                                    color: selectedCat == null
+                                        ? Colors.white
+                                        : oliveGreenDark,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    "All Categories",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: selectedCat == null
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: selectedCat == null
+                                          ? oliveGreenDark
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                                if (selectedCat == null)
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: oliveGreenPrimary,
+                                    size: 22,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 8),
+
+                    // Categories List
+                    ...categories.map((c) {
+                      final isSelected = selectedCat == c['id'].toString();
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        child: Material(
+                          color: isSelected
+                              ? oliveGreenPrimary.withOpacity(0.08)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              _onCatChanged(c['id'].toString());
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isSelected
+                                      ? oliveGreenPrimary
+                                      : Colors.transparent,
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? oliveGreenPrimary
+                                          : oliveGreenPale,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        c['name'].isNotEmpty
+                                            ? c['name'][0].toUpperCase()
+                                            : "?",
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : oliveGreenAccent,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      c['name'],
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: isSelected
+                                            ? oliveGreenDark
+                                            : Colors.grey[700],
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: oliveGreenPrimary,
+                                      size: 22,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -616,70 +894,264 @@ class _VendorProductsState extends State<VendorProducts> {
     if (loadingSub) return;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) => Column(
+            children: [
+              // Header Section
+              Container(
+                padding: const EdgeInsets.only(top: 12, bottom: 20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [oliveGreenPale, Colors.white],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Select Subcategory",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
                   ),
-                ],
+                ),
+                child: Column(
+                  children: [
+                    // Drag Handle
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: oliveGreenLight.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Title with Icon
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: oliveGreenPrimary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.filter_alt_outlined,
+                            color: oliveGreenDark,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          "Select Subcategory",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: oliveGreenDark,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "${subCategories.length} available",
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.clear_all),
-                    title: const Text("All Subcategories"),
-                    onTap: () {
-                      Navigator.pop(context);
-                      setState(() => selectedSub = null);
-                      _filterProducts();
-                    },
-                  ),
-                  ...subCategories.map(
-                    (s) => ListTile(
-                      leading: const Icon(Icons.filter_list),
-                      title: Text(s['name']),
-                      selected: selectedSub == s['id'].toString(),
-                      onTap: () {
-                        Navigator.pop(context);
-                        setState(() => selectedSub = s['id'].toString());
-                        _filterProducts();
-                      },
+
+              // Divider
+              Container(height: 1, color: Colors.grey[200]),
+
+              // List Section
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  children: [
+                    // All Subcategories Option
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      child: Material(
+                        color: selectedSub == null
+                            ? oliveGreenPrimary.withOpacity(0.08)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            setState(() => selectedSub = null);
+                            _filterProducts();
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: selectedSub == null
+                                    ? oliveGreenPrimary
+                                    : Colors.transparent,
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: selectedSub == null
+                                        ? oliveGreenPrimary
+                                        : oliveGreenPale,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.clear_all,
+                                    color: selectedSub == null
+                                        ? Colors.white
+                                        : oliveGreenDark,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    "All Subcategories",
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: selectedSub == null
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: selectedSub == null
+                                          ? oliveGreenDark
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                                if (selectedSub == null)
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: oliveGreenPrimary,
+                                    size: 22,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 8),
+
+                    // Subcategories List
+                    ...subCategories.map((s) {
+                      final isSelected = selectedSub == s['id'].toString();
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        child: Material(
+                          color: isSelected
+                              ? oliveGreenPrimary.withOpacity(0.08)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              setState(() => selectedSub = s['id'].toString());
+                              _filterProducts();
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isSelected
+                                      ? oliveGreenPrimary
+                                      : Colors.transparent,
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? oliveGreenPrimary
+                                          : oliveGreenPale,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        s['name'].isNotEmpty
+                                            ? s['name'][0].toUpperCase()
+                                            : "?",
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : oliveGreenAccent,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      s['name'],
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                        color: isSelected
+                                            ? oliveGreenDark
+                                            : Colors.grey[700],
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: oliveGreenPrimary,
+                                      size: 22,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

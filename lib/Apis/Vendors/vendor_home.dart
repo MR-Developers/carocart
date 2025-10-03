@@ -22,7 +22,7 @@ class VendorService {
   static Future<int> getMyVendorEarningsByPeriod(String period) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString("carocart_token") ?? "";
+      final token = prefs.getString("auth_token") ?? "";
 
       final response = await _dio.get(
         "/vendor/earnings/$period",
@@ -55,7 +55,7 @@ class VendorService {
   static Future<int> getMyProductsCount({bool availableOnly = false}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString("carocart_token") ?? "";
+      final token = prefs.getString("auth_token") ?? "";
 
       final url =
           "/products/vendor/my-products/count${availableOnly ? "?availableOnly=true" : ""}";

@@ -48,7 +48,7 @@ class RoleSelectionScreen extends StatelessWidget {
                           child: RoleCard(
                             imagePath: 'assets/images/Customer.png',
                             title: "Customer",
-                            subtitle: "I Want To Shop Groceries",
+                            subtitle: "I Want To Order Food Or Groceries",
                             height: cardHeight,
                             onTap: () {
                               Navigator.push(
@@ -65,7 +65,7 @@ class RoleSelectionScreen extends StatelessWidget {
                           child: RoleCard(
                             imagePath: 'assets/images/DeliveryPartner.png',
                             title: "Delivery Partner",
-                            subtitle: "I Want To Deliver Groceries",
+                            subtitle: "I Want To Deliver Food Or Groceries",
                             height: cardHeight,
                             onTap: () {
                               Navigator.push(

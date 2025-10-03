@@ -6,14 +6,20 @@ import 'package:flutter/material.dart';
 
 class VendorWrapper extends StatefulWidget {
   final String vendorName;
-  const VendorWrapper({super.key, this.vendorName = "Vendor"});
+  final int initialIndex;
+
+  const VendorWrapper({
+    super.key,
+    this.vendorName = "Vendor",
+    this.initialIndex = 0, // default to 0 (Home)
+  });
 
   @override
   State<VendorWrapper> createState() => _VendorWrapperState();
 }
 
 class _VendorWrapperState extends State<VendorWrapper> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
   // List of pages
   late final List<Widget> _pages;
@@ -21,6 +27,7 @@ class _VendorWrapperState extends State<VendorWrapper> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex; // set from prop
     _pages = [
       VendorHomePage(vendorName: widget.vendorName),
       VendorOrderPage(),

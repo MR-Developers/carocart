@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:carocart/Apis/Vendors/vendor_products.dart';
 import 'package:carocart/Apis/Vendors/vendor_profile.dart';
+import 'package:carocart/User/UserChangePassword.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -503,7 +504,14 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: _showChangePasswordDialog,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ChangePasswordPage(),
+                            ),
+                          );
+                        },
                         icon: const Icon(Icons.lock_outline),
                         label: const Text(
                           "Change Password",

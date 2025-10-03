@@ -5,7 +5,6 @@ class ApiConstants {
   );
   static const String prodUrl = String.fromEnvironment(
     "PROD_URL",
-    defaultValue:
-        "https://carocart-api-gateway-272629239226.asia-south1.run.app",
+    defaultValue: "http://10.0.2.2:8080",
   );
 }

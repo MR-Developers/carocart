@@ -1,4 +1,7 @@
 import 'package:carocart/Apis/Vendors/vendor_home.dart';
+import 'package:carocart/Vendor/Vendor_Add_Product_Wrapper.dart';
+import 'package:carocart/Vendor/Vendor_Change_Password.dart';
+import 'package:carocart/Vendor/Vendor_Wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,27 +38,38 @@ class _VendorHomePageState extends State<VendorHomePage> {
   Future<void> _loadData() async {
     try {
       final daily = await VendorService.getMyVendorEarningsByPeriod("daily");
-      final weekly = await VendorService.getMyVendorEarningsByPeriod("weekly");
-      final products = await VendorService.getMyProductsCount();
-
       if (mounted) {
         setState(() {
           _daily = daily;
-          _weekly = weekly;
-          _products = products;
           _loadingDaily = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _loadingDaily = false);
+    }
+
+    try {
+      final weekly = await VendorService.getMyVendorEarningsByPeriod("weekly");
+      if (mounted) {
+        setState(() {
+          _weekly = weekly;
           _loadingWeekly = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _loadingWeekly = false);
+    }
+
+    try {
+      final products = await VendorService.getMyProductsCount();
+      if (mounted) {
+        setState(() {
+          _products = products;
           _loadingProducts = false;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _loadingDaily = false;
-          _loadingWeekly = false;
-          _loadingProducts = false;
-        });
-      }
+      if (mounted) setState(() => _loadingProducts = false);
     }
   }
 
@@ -215,31 +229,69 @@ class _VendorHomePageState extends State<VendorHomePage> {
                           icon: Icons.inventory_outlined,
                           label: "Products",
                           color: Colors.blue,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    VendorWrapper(initialIndex: 2),
+                              ),
+                            );
+                          },
                         ),
                         _buildActionTile(
                           icon: Icons.add_box_outlined,
                           label: "Add Product",
                           color: Colors.green,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VendorAddProductWrapper(),
+                              ),
+                            );
+                          },
                         ),
                         _buildActionTile(
                           icon: Icons.shopping_cart_outlined,
                           label: "Orders",
                           color: Colors.orange,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    VendorWrapper(initialIndex: 1),
+                              ),
+                            );
+                          },
                         ),
                         _buildActionTile(
                           icon: Icons.person_outline,
                           label: "Profile",
                           color: Colors.purple,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    VendorWrapper(initialIndex: 3),
+                              ),
+                            );
+                          },
                         ),
                         _buildActionTile(
                           icon: Icons.lock_outline,
                           label: "Password",
                           color: Colors.red,
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChangePasswordPage(),
+                              ),
+                            );
+                          },
                         ),
                         _buildActionTile(
                           icon: Icons.phone_outlined,

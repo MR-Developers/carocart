@@ -226,18 +226,18 @@ class _VendorOrderPageState extends State<VendorOrderPage> {
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.green[700],
         title: const Text(
           "Pending Orders",
           style: TextStyle(
-            color: Colors.black87,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black87),
+            icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: loading ? null : fetchOrderItems,
           ),
         ],
