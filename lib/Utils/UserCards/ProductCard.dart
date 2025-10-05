@@ -379,12 +379,12 @@ class _ProductCardState extends State<ProductCard>
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF10B981), Color(0xFF059669)],
+            colors: [Color(0xFF273E06), Color(0xFF1F3305)],
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF10B981).withOpacity(0.3),
+              color: const Color(0xFF273E06).withOpacity(0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -446,7 +446,7 @@ class _ProductCardState extends State<ProductCard>
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: icon == Icons.add_rounded
-                ? [const Color(0xFF10B981), const Color(0xFF059669)]
+                ? [Color(0xFF273E06), Color(0xFF1F3305)]
                 : [const Color(0xFFF59E0B), const Color(0xFFEF6820)],
           ),
           borderRadius: BorderRadius.circular(8),

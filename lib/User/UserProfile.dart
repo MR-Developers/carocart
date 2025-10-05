@@ -73,7 +73,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final primary = Colors.green.shade600;
+    final primary = Color(0xFF273E06);
 
     if (loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -84,12 +84,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Profile Header
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [primary, Colors.green.shade400],
+                  colors: [Color(0xFF273E06), Color(0xFF3E6C1F)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -210,7 +209,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           backgroundColor: Colors.green.shade50,
           child: Icon(
             icon,
-            color: isDestructive ? Colors.red : Colors.green.shade700,
+            color: isDestructive ? Colors.red : Colors.green.shade900,
           ),
         ),
         title: Text(

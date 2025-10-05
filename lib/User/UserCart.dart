@@ -46,7 +46,8 @@ class _UserCartPageState extends State<UserCartPage> {
 
   double get totalPrice =>
       cartItems.fold(0, (sum, item) => sum + item.price * item.quantity);
-
+  bool get isMinimumOrderNotMet => totalPrice < 149;
+  bool get isFreeDelivery => totalPrice > 499;
   double get couponDiscount => discount > 0 ? totalPrice * discount : 0;
 
   double get grandTotal =>
@@ -54,18 +55,17 @@ class _UserCartPageState extends State<UserCartPage> {
 
   Future<int> getMyOrderCount() async {
     try {
-      final response = await OrderService.getOrderCount(); // Response object
+      final response = await OrderService.getOrderCount();
       if (response != null) {
-        // Assuming your API returns { "count": 0 } or a number directly
         if (response.data is int) {
           return response.data;
         } else if (response.data is Map && response.data['count'] != null) {
           return response.data['count'];
         }
       }
-      return 0; // default if response is empty or unexpected
+      return 0;
     } catch (e) {
-      return 999999; // fallback if API fails
+      return 999999;
     }
   }
 
@@ -76,7 +76,7 @@ class _UserCartPageState extends State<UserCartPage> {
         !couponApplied &&
         orderCount == 0) {
       setState(() {
-        discount = 0.15; // FIRST15 = 15%
+        discount = 0.15;
         couponApplied = true;
       });
     } else {
@@ -84,8 +84,6 @@ class _UserCartPageState extends State<UserCartPage> {
         discount = 0;
         couponApplied = false;
       });
-
-      // Show error message
       Fluttertoast.showToast(
         msg: "Coupon valid only for first-time users",
         toastLength: Toast.LENGTH_SHORT,
@@ -109,13 +107,12 @@ class _UserCartPageState extends State<UserCartPage> {
         isLoading = true;
       });
       if (newQuantity > 0) {
-        // 🔄 Update cart item in backend
         await CartService.updateCartItem(int.parse(item.id), newQuantity);
       } else {
         await CartService.updateCartItem(int.parse(item.id), 0);
       }
-      // 🔔 Refresh global count for AppNavbar
       await CartService.getCart();
+      await _fetchCart();
       setState(() {
         isLoading = false;
       });
@@ -185,7 +182,11 @@ class _UserCartPageState extends State<UserCartPage> {
       double? fee;
       if (vendorLat != null && vendorLng != null) {
         final d = haversineKm(vendorLat, vendorLng, userLat, userLng);
-        fee = feeFromDistance(d);
+        if (totalPrice <= 499) {
+          fee = feeFromDistance(d);
+        } else {
+          fee = 0;
+        }
       }
 
       setState(() {
@@ -395,7 +396,7 @@ class _UserCartPageState extends State<UserCartPage> {
                                             children: [
                                               // Old Price (strikethrough)
                                               Text(
-                                                "₹${(item.price * item.quantity).toStringAsFixed(2)}",
+                                                "₹${((item.price * 1.05) * item.quantity).toStringAsFixed(2)}",
                                                 style: const TextStyle(
                                                   fontSize: 13,
                                                   color: Colors.grey,
@@ -407,11 +408,11 @@ class _UserCartPageState extends State<UserCartPage> {
 
                                               // New Discounted Price
                                               Text(
-                                                "₹${((item.price * 0.8) * item.quantity).toStringAsFixed(2)}", // 20% discount
+                                                "₹${((item.price) * item.quantity).toStringAsFixed(2)}", // 20% discount
                                                 style: const TextStyle(
                                                   fontSize: 15,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Colors.green,
+                                                  color: Color(0xFF273E06),
                                                 ),
                                               ),
                                             ],
@@ -434,14 +435,14 @@ class _UserCartPageState extends State<UserCartPage> {
                                   icon: const Icon(
                                     Icons.add,
                                     size: 20,
-                                    color: Colors.green,
+                                    color: Color(0xFF273E06),
                                   ),
                                   label: const Text(
                                     "Add More items",
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.green,
+                                      color: Color(0xFF273E06),
                                     ),
                                   ),
                                 ),
@@ -491,7 +492,7 @@ class _UserCartPageState extends State<UserCartPage> {
                                       children: const [
                                         Icon(
                                           Icons.local_offer,
-                                          color: Colors.green,
+                                          color: Color(0xFF273E06),
                                           size: 22,
                                         ),
                                         SizedBox(width: 6),
@@ -551,7 +552,7 @@ class _UserCartPageState extends State<UserCartPage> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: couponApplied
                                                 ? Colors.grey.shade400
-                                                : Colors.green.shade600,
+                                                : Color(0xFF273E06),
                                             foregroundColor: Colors.white,
                                             padding: const EdgeInsets.symmetric(
                                               horizontal: 18,
@@ -595,14 +596,14 @@ class _UserCartPageState extends State<UserCartPage> {
                                           children: [
                                             const Icon(
                                               Icons.check_circle,
-                                              color: Colors.green,
+                                              color: Color(0xFF273E06),
                                               size: 18,
                                             ),
                                             const SizedBox(width: 6),
                                             Text(
                                               "Coupon applied! (${(discount * 100).toInt()}% OFF)",
                                               style: const TextStyle(
-                                                color: Colors.green,
+                                                color: Color(0xFF273E06),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -660,7 +661,9 @@ class _UserCartPageState extends State<UserCartPage> {
                                     const SizedBox(height: 16),
                                     ElevatedButton.icon(
                                       onPressed:
-                                          (!deliveryAvailable || isCheckingOut)
+                                          (!deliveryAvailable ||
+                                              isCheckingOut ||
+                                              isMinimumOrderNotMet)
                                           ? null
                                           : checkout,
                                       icon: isCheckingOut
@@ -674,14 +677,18 @@ class _UserCartPageState extends State<UserCartPage> {
                                             )
                                           : const Icon(Icons.lock_outline),
                                       label: Text(
-                                        deliveryAvailable
-                                            ? "Proceed to Checkout"
-                                            : "Delivery not available",
+                                        !deliveryAvailable
+                                            ? "Delivery not available"
+                                            : isMinimumOrderNotMet
+                                            ? "Minimum order ₹149 required"
+                                            : "Proceed to Checkout",
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: deliveryAvailable
-                                            ? Colors.green.shade600
-                                            : Colors.grey.shade400,
+                                        backgroundColor:
+                                            (!deliveryAvailable ||
+                                                isMinimumOrderNotMet)
+                                            ? Colors.grey.shade400
+                                            : const Color(0xFF273E06),
                                         foregroundColor: Colors.white,
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16,
@@ -694,14 +701,60 @@ class _UserCartPageState extends State<UserCartPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 10),
-                                    if (deliveryAvailable)
+
+                                    // 🔴 Show warning text if minimum not met
+                                    if (isMinimumOrderNotMet)
                                       const Center(
                                         child: Text(
-                                          "100% Secure Checkout",
+                                          "Minimum order value is ₹149 to proceed",
                                           style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
+                                            fontSize: 13,
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.w500,
                                           ),
+                                        ),
+                                      )
+                                    else if (deliveryAvailable &&
+                                        !isFreeDelivery)
+                                      Center(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              "100% Secure Checkout",
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Text(
+                                              "Add + ₹${(499 - totalPrice).toInt()} More To Avail Free Delivery",
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    else
+                                      Center(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              "100% Secure Checkout",
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                            Text(
+                                              "Add +${499 - totalPrice} More To Avail Free Delivery",
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                   ],
@@ -718,7 +771,7 @@ class _UserCartPageState extends State<UserCartPage> {
             Container(
               color: Colors.black.withOpacity(0.3),
               child: const Center(
-                child: CircularProgressIndicator(color: Colors.green),
+                child: CircularProgressIndicator(color: Color(0xFF273E06)),
               ),
             ),
         ],

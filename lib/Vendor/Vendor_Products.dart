@@ -12,11 +12,8 @@ class VendorProducts extends StatefulWidget {
 
 class _VendorProductsState extends State<VendorProducts> {
   // Olive Green Color Palette
-  static const Color oliveGreenPrimary = Color.fromARGB(
-    255,
-    50,
-    138,
-    54,
+  static const Color oliveGreenPrimary = Color(
+    0xFF273E06,
   ); // equivalent to Colors.green[700];
   static const Color oliveGreenDark = Color(0xFF556B2F);
   static const Color oliveGreenLight = Color(0xFF9ACD32);

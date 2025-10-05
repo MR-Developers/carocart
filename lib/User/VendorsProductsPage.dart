@@ -455,7 +455,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  colors: [Color(0xFF273E06), Color(0xFF1F3305)],
                 ),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
@@ -504,8 +504,9 @@ class _VendorProductsPageState extends State<VendorProductsPage>
     return SliverAppBar(
       expandedHeight: 0,
       floating: true,
-      pinned: false,
-      backgroundColor: Colors.transparent,
+      pinned: true,
+      backgroundColor: Color(0xFF273E06),
+      foregroundColor: Colors.white,
       elevation: 0,
       leading: Container(
         margin: const EdgeInsets.all(8),
@@ -531,11 +532,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
       ),
       title: Text(
         vendor?["companyName"] ?? "Vendor",
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF1E293B),
-        ),
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
     );
@@ -684,7 +681,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.green.shade500,
+                                color: Color(0xFF273E06),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Text(
@@ -758,7 +755,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.amber.shade400,
+                      color: Colors.amber.shade600,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
@@ -767,7 +764,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                         const Icon(Icons.star, size: 16, color: Colors.white),
                         const SizedBox(width: 4),
                         Text(
-                          vendor?["rating"]?.toString() ?? "4.5",
+                          vendor?["rating"]?.toString() ?? "N/A",
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -857,17 +854,17 @@ class _VendorProductsPageState extends State<VendorProductsPage>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6366F1) : Colors.white,
+          color: isSelected ? Colors.orange.shade700 : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF6366F1)
+                ? Colors.orange.shade700
                 : const Color(0xFFE5E7EB),
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF6366F1).withOpacity(0.3),
+                    color: Colors.orange.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),

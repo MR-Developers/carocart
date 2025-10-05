@@ -226,7 +226,7 @@ class _VendorOrderPageState extends State<VendorOrderPage> {
       appBar: AppBar(
         elevation: 0,
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.green[700],
+        backgroundColor: Color(0xFF273E06),
         title: const Text(
           "Pending Orders",
           style: TextStyle(

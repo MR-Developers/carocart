@@ -155,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                         width: width,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: HexColor("#09B763"),
+                          color: Color(0xFF273E06),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         alignment: Alignment.center,
@@ -217,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                     onTap: () async {
                       setState(() => isLoading = true);
 
-                      final success = await GoogleAuthHelper.signInWithGoogle();
+                      final success = await GoogleAuthHelper.loginWithGoogle();
 
                       setState(() => isLoading = false);
 
@@ -271,7 +271,7 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.black,
-                                fontWeight: FontWeight.w100,
+                                fontWeight: FontWeight.w200,
                               ),
                             ),
                           ],

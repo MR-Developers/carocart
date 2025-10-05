@@ -35,14 +35,14 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: AppBarTheme(
-          color: Colors.green.shade600,
+          color: Color(0xFF273E06),
           foregroundColor: Colors.white,
         ),
         cardColor: Colors.white,
         cardTheme: CardThemeData(color: Colors.white),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green.shade600,
+            backgroundColor: Color(0xFF273E06),
             foregroundColor: Colors.white,
           ),
         ),

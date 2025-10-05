@@ -146,7 +146,7 @@ class VendorCard extends StatelessWidget {
                   top: 12,
                   right: 12,
                   child: Chip(
-                    backgroundColor: open ? Colors.green : Colors.red,
+                    backgroundColor: open ? Color(0xFF273E06) : Colors.red,
                     label: Text(
                       open ? "Open Now" : "Closed",
                       style: const TextStyle(color: Colors.white),
@@ -239,7 +239,7 @@ class VendorCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            vendor["rating"]?.toString() ?? "4.5",
+                            vendor["rating"]?.toString() ?? "N/A",
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,

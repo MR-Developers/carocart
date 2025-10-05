@@ -36,15 +36,7 @@ class _UserHomeState extends State<UserHome> {
   int? selectedSubCategoryId;
   List<Map<String, String>> banners = [
     {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
-    {"imageUrl": "assets/images/Banner_1.png"},
+    {"imageUrl": "assets/images/Banner_2.jpg"},
   ];
 
   @override

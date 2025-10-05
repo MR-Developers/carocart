@@ -123,7 +123,7 @@ class _VendorHomePageState extends State<VendorHomePage> {
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.green[700]!, Colors.green[500]!],
+                    colors: [Color(0xFF273E06), Color(0xFF1F2C05)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),

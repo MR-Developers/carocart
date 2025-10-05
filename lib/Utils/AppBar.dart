@@ -82,6 +82,10 @@ class _AppNavbarState extends State<AppNavbar> {
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryColor = Color(0xFF273E06); // #273e06
+    const Color accentColor = Color.fromARGB(255, 73, 116, 14);
+    const Color lightBackground = Color(0xFFEFF4E8);
+
     return AppBar(
       automaticallyImplyLeading: false,
       elevation: 0,
@@ -90,7 +94,7 @@ class _AppNavbarState extends State<AppNavbar> {
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
+            colors: [primaryColor, accentColor],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -113,14 +117,14 @@ class _AppNavbarState extends State<AppNavbar> {
                   ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Colors.white, Color(0xFFE8F5E9)],
+                      colors: [Colors.white, lightBackground],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.green.withOpacity(0.25),
+                        color: primaryColor.withOpacity(0.25),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -130,7 +134,7 @@ class _AppNavbarState extends State<AppNavbar> {
                     children: [
                       const Icon(
                         Icons.location_on,
-                        color: Colors.green,
+                        color: primaryColor,
                         size: 24,
                       ),
                       const SizedBox(width: 8),
@@ -179,17 +183,17 @@ class _AppNavbarState extends State<AppNavbar> {
                   clipBehavior: Clip.none,
                   children: [
                     Material(
-                      color: Colors.orange.shade400,
+                      color: Colors.orange,
                       borderRadius: BorderRadius.circular(16),
                       elevation: count > 0 ? 6 : 2,
-                      shadowColor: Colors.orangeAccent.withOpacity(0.5),
+                      shadowColor: Colors.orange.withOpacity(0.5),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
                         onTap: () {
                           Navigator.pushNamed(context, "/usercart");
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12.0),
                           child: Icon(
                             Icons.shopping_bag,
                             color: Colors.white,

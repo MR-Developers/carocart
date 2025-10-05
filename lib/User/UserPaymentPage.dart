@@ -180,7 +180,7 @@ class _PaymentPageState extends State<PaymentPage> {
         items: widget.cartItems
             .map(
               (c) => {
-                "productId": int.tryParse(c.id.toString()) ?? 0, // ensure int
+                "productId": int.tryParse(c.id.toString()) ?? 0,
                 "quantity": c.quantity,
                 "price": c.price.toInt(),
               },
@@ -215,6 +215,9 @@ class _PaymentPageState extends State<PaymentPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -313,7 +316,7 @@ class _PaymentPageState extends State<PaymentPage> {
                                               style: TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 15,
-                                                color: Colors.green.shade700,
+                                                color: Color(0xFF273E06),
                                               ),
                                             ),
                                           ],
@@ -519,7 +522,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   child: ElevatedButton(
                     onPressed: handlePlaceOrder,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade600,
+                      backgroundColor: Color(0xFF273E06),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -568,7 +571,7 @@ class _PaymentPageState extends State<PaymentPage> {
             style: TextStyle(
               fontWeight: isBold ? FontWeight.bold : null,
               fontSize: isBold ? 16 : 14,
-              color: isBold ? Colors.green.shade700 : Colors.black87,
+              color: isBold ? Color(0xFF273E06) : Colors.black87,
             ),
           ),
         ],

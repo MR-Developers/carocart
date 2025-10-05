@@ -16,7 +16,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       "title": "On-Demand Delivery",
       "subtitle":
-          "We turn your retail pickup orders into same day delivery with three simple steps",
+          "We turn your orders pickups into same day delivery with three simple steps",
       "image": "assets/images/User/Step_1.png",
     },
     {
@@ -27,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       "title": "Fast & Reliable Schedule With Hourly",
       "subtitle":
-          "Our delivery partners ensure your groceries arrive on time, every time",
+          "Our delivery partners ensure your food or groceries arrive on time, every time",
       "image": "assets/images/User/Step_3.png",
     },
   ];
@@ -127,7 +127,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ElevatedButton(
                             onPressed: _nextPage,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: Color(0xFF273E06),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),

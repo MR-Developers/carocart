@@ -300,7 +300,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
               padding: const EdgeInsets.symmetric(vertical: 32),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.green[700]!, Colors.green[500]!],
+                  colors: [Color(0xFF273E06), Color(0xFF1F2C05)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -521,7 +521,7 @@ class _VendorProfileScreenState extends State<VendorProfileScreen> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Color(0xFF273E06),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(

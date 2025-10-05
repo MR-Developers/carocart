@@ -16,10 +16,12 @@ double haversineKm(double lat1, double lon1, double lat2, double lon2) {
 double _deg2rad(double deg) => deg * pi / 180;
 
 double? feeFromDistance(double km) {
+  if (km <= 1) return 0;
+  if (km <= 2) return 15;
   if (km <= 3) return 19;
-  if (km <= 6) return 29;
-  if (km <= 9) return 39;
-  if (km <= 12) return 59;
+  if (km < 6) return 29;
+  if (km < 9) return 39;
+  if (km < 12) return 59;
   return null;
 }
 
