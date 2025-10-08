@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carocart/Apis/cart_service.dart';
+import 'package:carocart/Utils/CacheManager.dart';
 import 'package:carocart/Utils/FormatDate.dart';
 import 'package:carocart/Utils/Messages.dart';
 import 'package:flutter/material.dart';
@@ -17,17 +19,23 @@ class _UserOrdersPageState extends State<UserOrdersPage>
   bool actionLoading = false;
   List<dynamic> orders = [];
   late TabController _tabController;
+  late AnimationController _shimmerController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
     _loadOrders();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -168,6 +176,233 @@ class _UserOrdersPageState extends State<UserOrdersPage>
     }
   }
 
+  Widget _buildShimmerGradient({required Widget child}) {
+    return AnimatedBuilder(
+      animation: _shimmerController,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.grey.shade300,
+                Colors.grey.shade100,
+                Colors.grey.shade300,
+              ],
+              stops: [
+                _shimmerController.value - 0.3,
+                _shimmerController.value,
+                _shimmerController.value + 0.3,
+              ],
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: child,
+    );
+  }
+
+  Widget _buildShimmerOrderCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          children: [
+            // Header shimmer
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              color: Colors.grey.shade100,
+              child: Row(
+                children: [
+                  _buildShimmerGradient(
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildShimmerGradient(
+                          child: Container(
+                            height: 16,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildShimmerGradient(
+                          child: Container(
+                            height: 12,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildShimmerGradient(
+                    child: Container(
+                      width: 70,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Main content shimmer
+                  Row(
+                    children: [
+                      _buildShimmerGradient(
+                        child: Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildShimmerGradient(
+                              child: Container(
+                                height: 16,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildShimmerGradient(
+                              child: Container(
+                                height: 14,
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildShimmerGradient(
+                        child: Container(
+                          width: 60,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Rating shimmer
+                  _buildShimmerGradient(
+                    child: Container(
+                      width: double.infinity,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Buttons shimmer
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildShimmerGradient(
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildShimmerGradient(
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerList() {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 8, bottom: 20),
+      itemCount: 3,
+      itemBuilder: (ctx, i) => _buildShimmerOrderCard(),
+    );
+  }
+
   Widget _buildOrderCard(dynamic order) {
     final items = order['items'] ?? [];
     final status = order['status'] ?? "PLACED";
@@ -298,8 +533,9 @@ class _UserOrdersPageState extends State<UserOrdersPage>
                           child:
                               items.isNotEmpty &&
                                   items[0]['productImageUrl'] != null
-                              ? Image.network(
-                                  items[0]['productImageUrl'],
+                              ? CachedNetworkImage(
+                                  imageUrl: items[0]['productImageUrl'],
+                                  cacheManager: MyCacheManager(),
                                   fit: BoxFit.cover,
                                 )
                               : Container(
@@ -594,11 +830,7 @@ class _UserOrdersPageState extends State<UserOrdersPage>
       body: Stack(
         children: [
           loading
-              ? Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.indigo.shade500,
-                  ),
-                )
+              ? _buildShimmerList()
               : TabBarView(
                   controller: _tabController,
                   children: [

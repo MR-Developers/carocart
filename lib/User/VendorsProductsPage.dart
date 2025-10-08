@@ -1,11 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carocart/Apis/cart_service.dart';
 import 'package:carocart/Apis/home_api.dart';
 import 'package:carocart/Apis/product_service.dart';
 import 'package:carocart/User/ProductDetails.dart';
+import 'package:carocart/Utils/CacheManager.dart';
 import 'package:carocart/Utils/Messages.dart';
 import 'package:carocart/Utils/UserCards/ProductCard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:math' as math;
 
 class VendorProductsPage extends StatefulWidget {
   final int vendorId;
@@ -41,12 +44,18 @@ class _VendorProductsPageState extends State<VendorProductsPage>
 
   late AnimationController _animationController;
   late AnimationController _fabAnimationController;
+  late AnimationController _shimmerController;
+  late AnimationController _pulseController;
+  late AnimationController _floatingController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fabScaleAnimation;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _floatingAnimation;
 
   final FocusNode _searchFocusNode = FocusNode();
   bool _isSearchExpanded = false;
+
   @override
   void initState() {
     super.initState();
@@ -67,6 +76,21 @@ class _VendorProductsPageState extends State<VendorProductsPage>
       vsync: this,
     );
 
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat();
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _floatingController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
@@ -83,6 +107,14 @@ class _VendorProductsPageState extends State<VendorProductsPage>
       ),
     );
 
+    _pulseAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _floatingAnimation = Tween<double>(begin: -10, end: 10).animate(
+      CurvedAnimation(parent: _floatingController, curve: Curves.easeInOut),
+    );
+
     _animationController.forward();
     _fabAnimationController.forward();
   }
@@ -97,6 +129,9 @@ class _VendorProductsPageState extends State<VendorProductsPage>
   void dispose() {
     _animationController.dispose();
     _fabAnimationController.dispose();
+    _shimmerController.dispose();
+    _pulseController.dispose();
+    _floatingController.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -188,6 +223,8 @@ class _VendorProductsPageState extends State<VendorProductsPage>
       if (current == 0 && delta > 0) {
         await CartService.addToCart(productId, 1);
         cartVendorId = widget.vendorId;
+      } else if (newQty == 0) {
+        await CartService.removeCartItem(productId);
       } else {
         await CartService.updateCartItem(productId, newQty);
       }
@@ -239,7 +276,6 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Drag handle
                     Center(
                       child: Container(
                         width: 50,
@@ -259,8 +295,6 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // Scrollable list
                     Expanded(
                       child: ListView(
                         controller: scrollController,
@@ -380,18 +414,500 @@ class _VendorProductsPageState extends State<VendorProductsPage>
     }
   }
 
+  Widget _buildAnimatedShimmer({required Widget child}) {
+    return AnimatedBuilder(
+      animation: _shimmerController,
+      builder: (context, child) {
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: const [
+                Color(0xFFE5E7EB),
+                Color(0xFFFFFBFE),
+                Color(0xFFE5E7EB),
+              ],
+              stops: [
+                math.max(0.0, _shimmerController.value - 0.3),
+                _shimmerController.value,
+                math.min(1.0, _shimmerController.value + 0.3),
+              ],
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+      child: child,
+    );
+  }
+
+  Widget _buildInterestingLoader() {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF273E06),
+        elevation: 0,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Icon(
+            Icons.arrow_back_ios_new,
+            size: 18,
+            color: Colors.black,
+          ),
+        ),
+        title: AnimatedBuilder(
+          animation: _pulseController,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _pulseAnimation.value,
+              child: _buildAnimatedShimmer(
+                child: Container(
+                  width: 140,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          // Floating food icons background
+          ...List.generate(5, (index) {
+            return AnimatedBuilder(
+              animation: _floatingController,
+              builder: (context, child) {
+                final offset =
+                    _floatingAnimation.value * (index % 2 == 0 ? 1 : -1);
+                return Positioned(
+                  left: 20.0 + (index * 80),
+                  top: 50.0 + offset + (index * 40),
+                  child: Opacity(
+                    opacity: 0.1,
+                    child: Icon(
+                      [
+                        Icons.restaurant,
+                        Icons.local_pizza,
+                        Icons.lunch_dining,
+                        Icons.fastfood,
+                        Icons.ramen_dining,
+                      ][index],
+                      size: 40,
+                      color: const Color(0xFF273E06),
+                    ),
+                  ),
+                );
+              },
+            );
+          }),
+
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 10),
+
+                // Animated search bar
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  child: AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: 0.98 + (_pulseAnimation.value - 0.95) * 2,
+                        child: _buildAnimatedShimmer(
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF273E06,
+                                  ).withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Vendor card with pulsing effect
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
+                  child: AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: 0.98 + (_pulseAnimation.value - 0.95) * 2,
+                        child: _buildAnimatedShimmer(
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF273E06,
+                                  ).withOpacity(0.1),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    AnimatedBuilder(
+                                      animation: _pulseController,
+                                      builder: (context, child) {
+                                        return Transform.scale(
+                                          scale: _pulseAnimation.value,
+                                          child: Icon(
+                                            Icons.restaurant,
+                                            size: 36,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        height: 20,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Container(
+                                        width: 140,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        width: 120,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Animated filter chips
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: List.generate(3, (index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: AnimatedBuilder(
+                          animation: _pulseController,
+                          builder: (context, child) {
+                            final delay = index * 0.1;
+                            final animValue =
+                                (_pulseController.value + delay) % 1.0;
+                            return Transform.scale(
+                              scale: 0.95 + (animValue * 0.1),
+                              child: _buildAnimatedShimmer(
+                                child: Container(
+                                  width: 100,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: [
+                                          Colors.orange,
+                                          Colors.green,
+                                          Colors.red,
+                                        ][index].withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+
+                // Loading message with animation
+                Center(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _pulseAnimation.value,
+                            child: Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0xFF273E06).withOpacity(0.2),
+                                    const Color(0xFF10B981).withOpacity(0.2),
+                                  ],
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.restaurant_menu,
+                                size: 48,
+                                color: Color(0xFF273E06),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      AnimatedBuilder(
+                        animation: _shimmerController,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: 0.5 + (_shimmerController.value * 0.5),
+                            child: const Text(
+                              "Preparing your menu...",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF273E06),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Fresh items loading",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Animated product card placeholders
+                ...List.generate(2, (sectionIndex) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        child: _buildAnimatedShimmer(
+                          child: Container(
+                            width: 160,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 280,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: 3,
+                          itemBuilder: (ctx, idx) {
+                            return AnimatedBuilder(
+                              animation: _floatingController,
+                              builder: (context, child) {
+                                final offset =
+                                    _floatingAnimation.value *
+                                    (idx % 2 == 0 ? 0.5 : -0.5);
+                                return Transform.translate(
+                                  offset: Offset(0, offset),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(right: 16),
+                                    child: _buildAnimatedShimmer(
+                                      child: Container(
+                                        width: 200,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(
+                                                0xFF273E06,
+                                              ).withOpacity(0.08),
+                                              blurRadius: 12,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              height: 140,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade200,
+                                                borderRadius:
+                                                    const BorderRadius.vertical(
+                                                      top: Radius.circular(20),
+                                                    ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(12),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Container(
+                                                    width: 120,
+                                                    height: 16,
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          Colors.grey.shade200,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Container(
+                                                    width: 80,
+                                                    height: 14,
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          Colors.grey.shade200,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  Container(
+                                                    width: 100,
+                                                    height: 32,
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          Colors.grey.shade200,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        body: const Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF10B981),
-            strokeWidth: 3,
-          ),
-        ),
-      );
+      return _buildInterestingLoader();
     }
 
     if (error != null) {
@@ -486,13 +1002,114 @@ class _VendorProductsPageState extends State<VendorProductsPage>
           ),
         ),
 
-        // Loading overlay
         if (cartUpdating)
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+              color: Colors.black.withOpacity(0.4),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF10B981).withOpacity(0.2),
+                        blurRadius: 30,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Bouncing cart icon
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          final bounce =
+                              math.sin(_pulseController.value * math.pi * 2) *
+                              8;
+                          return Transform.translate(
+                            offset: Offset(0, bounce),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF10B981),
+                                    Color(0xFF34D399),
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(
+                                      0xFF10B981,
+                                    ).withOpacity(0.4),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.shopping_bag_rounded,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Updating The cart!",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      AnimatedBuilder(
+                        animation: _shimmerController,
+                        builder: (context, child) {
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(3, (index) {
+                              final delay = index * 0.33;
+                              final animValue =
+                                  (_shimmerController.value + delay) % 1.0;
+                              final scale =
+                                  1.0 +
+                                  (math.sin(animValue * math.pi * 2) * 0.5);
+
+                              return Transform.scale(
+                                scale: scale,
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color(0xFF10B981),
+                                        const Color(0xFF34D399),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -505,7 +1122,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
       expandedHeight: 0,
       floating: true,
       pinned: true,
-      backgroundColor: Color(0xFF273E06),
+      backgroundColor: const Color(0xFF273E06),
       foregroundColor: Colors.white,
       elevation: 0,
       leading: Container(
@@ -574,7 +1191,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
               contentPadding: const EdgeInsets.all(16),
             ),
             onChanged: (query) {
-              setState(() {}); // Trigger rebuild for search results
+              setState(() {});
             },
           ),
         ),
@@ -583,8 +1200,9 @@ class _VendorProductsPageState extends State<VendorProductsPage>
   }
 
   Widget _buildVendorInfoSection() {
-    if (vendor == null)
+    if (vendor == null) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     return SliverToBoxAdapter(
       child: Container(
@@ -614,7 +1232,6 @@ class _VendorProductsPageState extends State<VendorProductsPage>
             children: [
               Row(
                 children: [
-                  // Clean vendor image
                   Container(
                     width: 80,
                     height: 80,
@@ -631,8 +1248,9 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: vendor?["profileImageUrl"] != null
-                          ? Image.network(
-                              vendor!["profileImageUrl"],
+                          ? CachedNetworkImage(
+                              imageUrl: vendor!["profileImageUrl"],
+                              cacheManager: MyCacheManager(),
                               fit: BoxFit.cover,
                             )
                           : Container(
@@ -654,10 +1272,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                             ),
                     ),
                   ),
-
                   const SizedBox(width: 20),
-
-                  // Vendor info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -681,7 +1296,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Color(0xFF273E06),
+                                color: const Color(0xFF273E06),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Text(
@@ -696,9 +1311,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 12),
-
                         Row(
                           children: [
                             Icon(
@@ -717,9 +1330,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 8),
-
                         Row(
                           children: [
                             Icon(
@@ -743,10 +1354,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
-
-              // Bottom info row
               Row(
                 children: [
                   Container(
@@ -774,9 +1382,7 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                       ],
                     ),
                   ),
-
                   const SizedBox(width: 12),
-
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,

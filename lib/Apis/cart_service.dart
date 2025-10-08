@@ -128,4 +128,44 @@ class CartService {
       rethrow;
     }
   }
+
+  static Future<void> removeCartItem(int productId) async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception("Not authenticated");
+
+      final response = await _dio.delete(
+        "/remove/$productId",
+        options: Options(
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json",
+          },
+        ),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Decrease the cart count and notify listeners
+        cartCountNotifier.value = (cartCountNotifier.value - 1)
+            .clamp(0, double.infinity)
+            .toInt();
+        print("✅ Removed product $productId from cart successfully");
+      } else {
+        throw Exception("Failed to remove item: ${response.statusMessage}");
+      }
+    } on DioException catch (e) {
+      print("❌ Dio error while removing from cart");
+      print("URL: ${e.requestOptions.uri}");
+      print("Status: ${e.response?.statusCode}");
+      print("Response: ${e.response?.data}");
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        print(AppMessages.connectionTimedOut);
+      }
+      rethrow;
+    } catch (e) {
+      print("Unexpected error while removing cart item: $e");
+      rethrow;
+    }
+  }
 }

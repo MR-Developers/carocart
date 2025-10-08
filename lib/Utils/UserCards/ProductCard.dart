@@ -1,7 +1,9 @@
 import 'package:carocart/User/ProductDetails.dart';
+import 'package:carocart/Utils/CacheManager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:carocart/Apis/cart_service.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductCard extends StatefulWidget {
   final Map<String, dynamic> product;
@@ -137,36 +139,29 @@ class _ProductCardState extends State<ProductCard>
                       child:
                           widget.product["imageUrl"] != null &&
                               widget.product["imageUrl"].isNotEmpty
-                          ? Image.network(
-                              widget.product["imageUrl"],
+                          ? CachedNetworkImage(
+                              imageUrl: widget.product["imageUrl"],
+                              cacheManager: MyCacheManager(),
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            const Color(
-                                              0xFF10B981,
-                                            ).withOpacity(0.1),
-                                            const Color(
-                                              0xFFF59E0B,
-                                            ).withOpacity(0.1),
-                                          ],
-                                        ),
-                                      ),
-                                      child: const Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Color(0xFF10B981),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                              errorBuilder: (context, error, stackTrace) {
+                              placeholder: (context, url) => Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xFF10B981).withOpacity(0.1),
+                                      const Color(0xFFF59E0B).withOpacity(0.1),
+                                    ],
+                                  ),
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF10B981),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) {
                                 return _buildImagePlaceholder();
                               },
                             )

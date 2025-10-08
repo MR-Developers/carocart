@@ -72,12 +72,7 @@ class _VendorsBySubCategoryPageState extends State<VendorsBySubCategoryPage> {
               itemCount: vendors.length,
               itemBuilder: (context, index) {
                 final v = vendors[index];
-                return VendorCard(
-                  vendor: v,
-                  onTap: () {
-                    print("Navigate to vendor ${v["id"]}");
-                  },
-                );
+                return VendorCard(vendor: v);
               },
             ),
     );

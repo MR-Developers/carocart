@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carocart/User/VendorBySubCategory.dart';
+import 'package:carocart/Utils/CacheManager.dart';
 import 'package:flutter/material.dart';
 import '../Apis/home_api.dart';
 
@@ -268,29 +270,21 @@ class _AllCategoriesPageState extends State<AllCategoriesPage>
                           ),
                         ),
                         child: imageUrl != null && imageUrl.isNotEmpty
-                            ? Image.network(
-                                imageUrl,
+                            ? CachedNetworkImage(
+                                imageUrl: imageUrl,
+                                cacheManager: MyCacheManager(),
                                 fit: BoxFit.cover,
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
+                                progressIndicatorBuilder:
+                                    (context, url, downloadProgress) {
                                       return Center(
                                         child: CircularProgressIndicator(
-                                          value:
-                                              loadingProgress
-                                                      .expectedTotalBytes !=
-                                                  null
-                                              ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                              : null,
+                                          value: downloadProgress.progress,
                                           strokeWidth: 2,
                                           color: Colors.white.withOpacity(0.8),
                                         ),
                                       );
                                     },
-                                errorBuilder: (context, error, stackTrace) {
+                                errorWidget: (context, url, error) {
                                   return _buildPlaceholderContent(name);
                                 },
                               )

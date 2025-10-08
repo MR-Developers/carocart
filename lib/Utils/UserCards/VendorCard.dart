@@ -1,3 +1,5 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carocart/Utils/CacheManager.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -109,8 +111,9 @@ class VendorCard extends StatelessWidget {
                   child:
                       vendor["profileImageUrl"] != null &&
                           vendor["profileImageUrl"].toString().isNotEmpty
-                      ? Image.network(
-                          vendor["profileImageUrl"],
+                      ? CachedNetworkImage(
+                          imageUrl: vendor["profileImageUrl"],
+                          cacheManager: MyCacheManager(),
                           height: 160,
                           width: double.infinity,
                           fit: BoxFit.cover,
