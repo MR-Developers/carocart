@@ -12,11 +12,10 @@ class DeliveryPartnerHome extends StatefulWidget {
 class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
   late Future<Map<String, dynamic>> _dashboardFuture;
 
-  // Updated theme colors based on Color(0xFF273E06)
   static const Color primaryGreen = Color(0xFF273E06);
-  static const Color lightGreen = Color(0xFF4A6B1E);
-  static const Color darkGreen = Color(0xFF1A2B04);
-  static const Color accentGreen = Color(0xFF3B5A0F);
+  static const Color accentGreen = Color(0xFF4A6B1E);
+  static const Color lightGreen = Color(0xFFF0F5EB);
+  static const Color borderColor = Color(0xFFE8EFE0);
 
   @override
   void initState() {
@@ -50,15 +49,14 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-
+      backgroundColor: const Color(0xFFFAFCF8),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _dashboardFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+                valueColor: const AlwaysStoppedAnimation<Color>(primaryGreen),
               ),
             );
           }
@@ -75,18 +73,25 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
                     style: TextStyle(color: Colors.red[700], fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () {
                       setState(() {
                         _dashboardFuture = _fetchDashboardData();
                       });
                     },
-                    icon: const Icon(Icons.refresh),
+                    icon: const Icon(Icons.refresh, size: 20),
                     label: const Text('Retry'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryGreen,
                       foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ],
@@ -102,24 +107,54 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
           final assignedOrders = data["assignedOrders"] as List;
           final availableOrders = data["availableOrders"] as List;
           final earningsSummary = data["earningsSummary"] as Map;
-          final profile = data["profile"] as Map;
 
           return SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Stats Grid
-                Padding(
-                  padding: const EdgeInsets.all(16),
+                // Header with gradient background - Full Width
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [primaryGreen, accentGreen],
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 32, 20, 28),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Overview',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF273E06),
+                      Text(
+                        'Welcome Back! 👋',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Your delivery dashboard',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withOpacity(0.85),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Stats Grid
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Quick Stats',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: primaryGreen,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -127,49 +162,44 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 1.3,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        childAspectRatio: 1.05,
                         children: [
                           _buildStatCard(
-                            icon: Icons.assignment,
-                            title: "Assigned Orders",
+                            icon: Icons.assignment_outlined,
+                            title: "Assigned",
                             value: assignedOrders.length.toString(),
-                            color: accentGreen,
-                            gradient: [accentGreen, lightGreen],
+                            color: primaryGreen,
+                            bgColor: const Color(0xFFE8F2DC),
                           ),
                           _buildStatCard(
-                            icon: Icons.local_shipping,
-                            title: "Available Orders",
+                            icon: Icons.local_shipping_outlined,
+                            title: "Available",
                             value: availableOrders.length.toString(),
                             color: const Color(0xFF5C7A1F),
-                            gradient: [
-                              const Color(0xFF5C7A1F),
-                              const Color(0xFF7A9B3A),
-                            ],
+                            bgColor: const Color(0xFFF1F6E8),
                           ),
                           _buildStatCard(
-                            icon: Icons.account_balance_wallet,
-                            title: "Today's Earnings",
+                            icon: Icons.wallet_outlined,
+                            title: "Earnings",
                             value: "₹${earningsSummary["total"] ?? 0}",
-                            color: primaryGreen,
-                            gradient: [primaryGreen, darkGreen],
+                            color: const Color(0xFF3D5610),
+                            bgColor: const Color(0xFFF5F9ED),
                           ),
                           _buildStatCard(
-                            icon: Icons.verified_user,
+                            icon: Icons.check_circle_outline,
                             title: "Status",
                             value: "Active",
-                            color: const Color(0xFF3D5610),
-                            gradient: [
-                              const Color(0xFF3D5610),
-                              const Color(0xFF567320),
-                            ],
+                            color: const Color(0xFF2E8B57),
+                            bgColor: const Color(0xFFE8F5F0),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           );
@@ -183,20 +213,17 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
     required String title,
     required String value,
     required Color color,
-    required List<Color> gradient,
+    required Color bgColor,
   }) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient,
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.2), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 8,
+            color: color.withOpacity(0.06),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -207,41 +234,88 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 24),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 22),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    color: color,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: primaryGreen,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_rounded, color: color, size: 18),
           ],
         ),
       ),

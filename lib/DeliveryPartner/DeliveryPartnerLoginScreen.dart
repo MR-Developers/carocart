@@ -78,7 +78,7 @@ class _DeliveryPartnerLoginScreenState
         final token = response['token'];
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('authToken', token);
+        await prefs.setString('auth_token', token);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -117,12 +117,12 @@ class _DeliveryPartnerLoginScreenState
 
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('authToken');
+    return prefs.getString('auth_token');
   }
 
   Future<void> logoutUser(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('authToken');
+    await prefs.remove('auth_token');
 
     Navigator.pushReplacement(
       context,
@@ -153,36 +153,39 @@ class _DeliveryPartnerLoginScreenState
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(
-                    vertical: 40,
+                    vertical: 25,
                     horizontal: 20,
                   ),
                   child: Column(
                     children: [
                       SvgPicture.asset(
                         "assets/images/DeliveryPartner/DeliveryPartnerbg.svg",
-                        height: 280,
+                        height: 200,
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                       const Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
                           "Be A Partner",
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.w500,
                             color: Colors.white70,
                           ),
                         ),
                       ),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Get a Stable Monthly\nIncome",
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1.2,
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 20),
+                        child: const Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Get a Stable Monthly\nIncome",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
                           ),
                         ),
                       ),
@@ -193,7 +196,7 @@ class _DeliveryPartnerLoginScreenState
 
               // Login Form
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -201,7 +204,7 @@ class _DeliveryPartnerLoginScreenState
                     Text(
                       "Welcome Back!",
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: primaryGreen,
                       ),
@@ -209,20 +212,20 @@ class _DeliveryPartnerLoginScreenState
                     const SizedBox(height: 6),
                     Text(
                       "Login to continue earning",
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
 
                     // Phone Field
                     Text(
                       "Phone Number",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: primaryGreen,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 4),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -253,23 +256,23 @@ class _DeliveryPartnerLoginScreenState
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 16,
+                            vertical: 14,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 8),
 
                     // Password Field
                     Text(
                       "Password",
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: primaryGreen,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 4),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -311,16 +314,16 @@ class _DeliveryPartnerLoginScreenState
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 16,
+                            vertical: 14,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
 
                     // Terms and Conditions
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: primaryGreen.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(10),
@@ -329,7 +332,7 @@ class _DeliveryPartnerLoginScreenState
                       child: Row(
                         children: [
                           Transform.scale(
-                            scale: 1.1,
+                            scale: 0.9,
                             child: Checkbox(
                               value: _agreeTerms,
                               onChanged: (value) {
@@ -347,7 +350,7 @@ class _DeliveryPartnerLoginScreenState
                             child: Text.rich(
                               TextSpan(
                                 text: "By signing in I agree to the ",
-                                style: const TextStyle(fontSize: 13),
+                                style: const TextStyle(fontSize: 12),
                                 children: [
                                   TextSpan(
                                     text: "Terms of use",
@@ -373,12 +376,12 @@ class _DeliveryPartnerLoginScreenState
                         ],
                       ),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 20),
 
                     // Login Button
                     Container(
                       width: double.infinity,
-                      height: 56,
+                      height: 50,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [primaryGreen, accentGreen],
@@ -408,13 +411,13 @@ class _DeliveryPartnerLoginScreenState
                                       Icon(
                                         Icons.login,
                                         color: Colors.white,
-                                        size: 22,
+                                        size: 20,
                                       ),
                                       SizedBox(width: 10),
                                       Text(
                                         "Login",
                                         style: TextStyle(
-                                          fontSize: 18,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
                                         ),
@@ -426,7 +429,7 @@ class _DeliveryPartnerLoginScreenState
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
                     // Sign Up Navigation
                     Center(
@@ -443,7 +446,7 @@ class _DeliveryPartnerLoginScreenState
                         child: Text.rich(
                           TextSpan(
                             text: "No account? ",
-                            style: const TextStyle(fontSize: 15),
+                            style: const TextStyle(fontSize: 14),
                             children: [
                               TextSpan(
                                 text: "Sign Up",
@@ -451,7 +454,7 @@ class _DeliveryPartnerLoginScreenState
                                   color: primaryGreen,
                                   fontWeight: FontWeight.bold,
                                   decoration: TextDecoration.underline,
-                                  fontSize: 15,
+                                  fontSize: 14,
                                 ),
                               ),
                             ],
@@ -459,7 +462,7 @@ class _DeliveryPartnerLoginScreenState
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),

@@ -1,3 +1,5 @@
+import 'package:carocart/DeliveryPartner/DelivaryParterhomeScafold.dart';
+import 'package:carocart/DeliveryPartner/DelivaryPartnerHome.dart';
 import 'package:carocart/Root/RoleSelection.dart';
 import 'package:carocart/User/CategorySelection.dart';
 import 'package:carocart/User/UserChangePassword.dart';
@@ -102,6 +104,7 @@ class MyApp extends StatelessWidget {
         "/vendorwrapper": (context) => VendorWrapper(),
         "/vendorlogin": (context) => VendorLogin(),
         "/vendorhome": (context) => VendorHomePage(),
+        "/deliveryhome": (context) => DelivaryParterHomeScafold(),
         // "/vendors/login": (context) => const SellerLoginScreen(),
         // "/account": (context) => const ProfileScreen(),
       },
@@ -138,13 +141,15 @@ class _FlashScreenState extends State<FlashScreen> {
           Navigator.pushReplacementNamed(context, "/");
         } else if (role == "VENDOR") {
           Navigator.pushReplacementNamed(context, "/vendorwrapper");
+        } else if (role == "DELIVERY_BOY") {
+          Navigator.pushReplacementNamed(context, "/deliveryhome");
         } else {
           prefs.remove("auth_token");
-          Navigator.pushReplacementNamed(context, "/login");
+          Navigator.pushReplacementNamed(context, "/role");
         }
       } else {
         prefs.remove("auth_token");
-        Navigator.pushReplacementNamed(context, "/login");
+        Navigator.pushReplacementNamed(context, "/role");
       }
     } else {
       Navigator.pushReplacementNamed(context, "/role");
