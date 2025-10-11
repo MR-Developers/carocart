@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../Apis/delivery.Person.dart'; // Your API service import
+import '../Apis/delivery.Person.dart';
 
 class PersonalDocumentUploadPage extends StatefulWidget {
   final DeliveryPartnerData deliveryData;
@@ -17,13 +17,18 @@ class PersonalDocumentUploadPage extends StatefulWidget {
 
 class _PersonalDocumentUploadPageState
     extends State<PersonalDocumentUploadPage> {
+  // Theme colors
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color darkGreen = Color(0xFF1A2B04);
+  static const Color accentGreen = Color(0xFF3B5A0F);
+
   File? _aadharFrontImage;
   File? _aadharBackImage;
   File? _panFrontImage;
 
   final ImagePicker _picker = ImagePicker();
 
-  // Loading states for each upload
   bool _isUploadingAadharFront = false;
   bool _isUploadingAadharBack = false;
   bool _isUploadingPanFront = false;
@@ -32,13 +37,11 @@ class _PersonalDocumentUploadPageState
   @override
   void initState() {
     super.initState();
-    // Pre-fill data if it exists
     _aadharFrontImage = widget.deliveryData.aadharFrontImage;
     _aadharBackImage = widget.deliveryData.aadharBackImage;
     _panFrontImage = widget.deliveryData.panFrontImage;
   }
 
-  // ✅ Helper method to dynamically return folder name
   String _getFolderName(String type) {
     switch (type) {
       case "AadharFront":
@@ -48,11 +51,10 @@ class _PersonalDocumentUploadPageState
       case "PanFront":
         return "pan";
       default:
-        return "documents"; // Fallback folder
+        return "documents";
     }
   }
 
-  // ✅ Helper method to get document name for display
   String _getDocumentName(String type) {
     switch (type) {
       case "AadharFront":
@@ -66,7 +68,6 @@ class _PersonalDocumentUploadPageState
     }
   }
 
-  // ✅ Pick Image from gallery and upload
   Future<void> _pickImage(String type) async {
     final pickedFile = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -92,10 +93,8 @@ class _PersonalDocumentUploadPageState
     }
   }
 
-  // ✅ Upload file to server and get URL
   Future<void> _uploadFileToServer(String type, String filePath) async {
     try {
-      // Set loading state
       setState(() {
         switch (type) {
           case "AadharFront":
@@ -112,10 +111,8 @@ class _PersonalDocumentUploadPageState
 
       print("Starting upload for $type with file: $filePath");
 
-      // Get dynamic folder name
       final folderName = _getFolderName(type);
 
-      // Call the API with dynamic folder name
       final response = await uploadFile(
         context: context,
         filePath: filePath,
@@ -126,7 +123,6 @@ class _PersonalDocumentUploadPageState
 
       String? uploadedUrl;
 
-      // Handle response format
       if (response is Map<String, dynamic>) {
         uploadedUrl = response['data'] as String?;
       } else if (response is String) {
@@ -135,13 +131,11 @@ class _PersonalDocumentUploadPageState
         uploadedUrl = response.toString();
       }
 
-      // Validate URL
       if (uploadedUrl != null &&
           uploadedUrl.isNotEmpty &&
           uploadedUrl != 'null') {
         print("Final URL to save: $uploadedUrl");
 
-        // Assign the URL to DeliveryPartnerData
         switch (type) {
           case "AadharFront":
             widget.deliveryData.aadhaarFrontUrl = uploadedUrl;
@@ -157,7 +151,8 @@ class _PersonalDocumentUploadPageState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("${_getDocumentName(type)} uploaded successfully!"),
-            backgroundColor: Colors.green,
+            backgroundColor: primaryGreen,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       } else {
@@ -172,11 +167,11 @@ class _PersonalDocumentUploadPageState
           content: Text(
             "Network error uploading ${_getDocumentName(type)}: ${e.message}",
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
         ),
       );
 
-      // Reset local file on failure
       setState(() {
         switch (type) {
           case "AadharFront":
@@ -191,7 +186,6 @@ class _PersonalDocumentUploadPageState
         }
       });
     } finally {
-      // Reset loading state
       setState(() {
         switch (type) {
           case "AadharFront":
@@ -208,27 +202,25 @@ class _PersonalDocumentUploadPageState
     }
   }
 
-  // ✅ Check if all documents are uploaded
   bool _allDocumentsUploaded() {
     return widget.deliveryData.aadhaarFrontUrl != null &&
         widget.deliveryData.aadhaarBackUrl != null &&
         widget.deliveryData.panCardUrl != null;
   }
 
-  // ✅ Save document data to model
   void _saveDocumentDataToModel() {
     widget.deliveryData.aadharFrontImage = _aadharFrontImage;
     widget.deliveryData.aadharBackImage = _aadharBackImage;
     widget.deliveryData.panFrontImage = _panFrontImage;
   }
 
-  // ✅ Submit documents
   void _submitDocuments() async {
     if (!_allDocumentsUploaded()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please upload all required documents"),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text("Please upload all required documents"),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -242,9 +234,10 @@ class _PersonalDocumentUploadPageState
       _saveDocumentDataToModel();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Documents saved successfully!"),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: const Text("Documents saved successfully!"),
+          backgroundColor: primaryGreen,
+          behavior: SnackBarBehavior.floating,
         ),
       );
 
@@ -258,7 +251,8 @@ class _PersonalDocumentUploadPageState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Error saving documents: ${e.toString()}"),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } finally {
@@ -271,52 +265,118 @@ class _PersonalDocumentUploadPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Upload Personal Documents"),
-        backgroundColor: Colors.green,
+        title: const Text(
+          "Personal Documents",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [primaryGreen, accentGreen],
+            ),
+          ),
+        ),
+        elevation: 0,
       ),
       body: Column(
         children: [
-          // Scrollable content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Upload Required Documents",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  // Header Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          primaryGreen.withOpacity(0.1),
+                          accentGreen.withOpacity(0.1),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: lightGreen.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [primaryGreen, accentGreen],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.description,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Upload Required Documents",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                "Please upload clear photos of your documents",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // Aadhar Front
                   _buildUploadCard(
                     title: "Aadhar Front",
+                    icon: Icons.credit_card,
                     imageFile: _aadharFrontImage,
                     isUploading: _isUploadingAadharFront,
                     isUploaded: widget.deliveryData.aadhaarFrontUrl != null,
                     onTap: () => _pickImage("AadharFront"),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // Aadhar Back
                   _buildUploadCard(
                     title: "Aadhar Back",
+                    icon: Icons.credit_card,
                     imageFile: _aadharBackImage,
                     isUploading: _isUploadingAadharBack,
                     isUploaded: widget.deliveryData.aadhaarBackUrl != null,
                     onTap: () => _pickImage("AadharBack"),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // PAN Card
                   _buildUploadCard(
                     title: "PAN Card",
+                    icon: Icons.card_membership,
                     imageFile: _panFrontImage,
                     isUploading: _isUploadingPanFront,
                     isUploaded: widget.deliveryData.panCardUrl != null,
@@ -330,41 +390,73 @@ class _PersonalDocumentUploadPageState
           // Submit Button
           Container(
             padding: const EdgeInsets.all(16),
-            width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
-                  offset: const Offset(0, -1),
-                  blurRadius: 5,
+                  offset: const Offset(0, -2),
+                  blurRadius: 8,
                 ),
               ],
             ),
-            child: ElevatedButton(
-              onPressed: _isSubmitting ? null : _submitDocuments,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _allDocumentsUploaded()
-                    ? Colors.green
-                    : Colors.grey,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: _allDocumentsUploaded()
+                    ? LinearGradient(colors: [primaryGreen, accentGreen])
+                    : LinearGradient(
+                        colors: [Colors.grey[400]!, Colors.grey[300]!],
+                      ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: _allDocumentsUploaded()
+                    ? [
+                        BoxShadow(
+                          color: primaryGreen.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: _isSubmitting ? null : _submitDocuments,
+                  child: Center(
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                "Save Documents",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
                 ),
               ),
-              child: _isSubmitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      "Save Documents",
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
             ),
           ),
         ],
@@ -372,86 +464,182 @@ class _PersonalDocumentUploadPageState
     );
   }
 
-  // ✅ Upload Card Widget
   Widget _buildUploadCard({
     required String title,
+    required IconData icon,
     required File? imageFile,
     required bool isUploading,
     required bool isUploaded,
     required VoidCallback onTap,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              "$title Upload",
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(width: 8),
-            if (isUploaded)
-              const Icon(Icons.check_circle, color: Colors.green, size: 20),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isUploaded ? primaryGreen : lightGreen.withOpacity(0.3),
+          width: isUploaded ? 2 : 1,
         ),
-        const SizedBox(height: 10),
-        GestureDetector(
-          onTap: isUploading ? null : onTap,
-          child: Container(
-            height: 150,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: isUploaded ? Colors.green : Colors.grey,
-                width: isUploaded ? 2 : 1,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Stack(
+        boxShadow: [
+          BoxShadow(
+            color: primaryGreen.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
               children: [
-                if (imageFile != null)
-                  ClipRRect(
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isUploaded
+                          ? [primaryGreen, accentGreen]
+                          : [Colors.grey[300]!, Colors.grey[200]!],
+                    ),
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.file(imageFile, fit: BoxFit.cover),
-                  )
-                else
-                  const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.cloud_upload, size: 40, color: Colors.grey),
-                        SizedBox(height: 8),
-                        Text("Tap to upload image"),
-                      ],
+                  ),
+                  child: Icon(
+                    isUploaded ? Icons.check_circle : icon,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
                   ),
-
-                // Loading overlay
-                if (isUploading)
+                ),
+                if (isUploaded)
                   Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
                     ),
-                    child: const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(color: Colors.white),
-                          SizedBox(height: 8),
-                          Text(
-                            "Uploading...",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
+                    decoration: BoxDecoration(
+                      color: primaryGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      "Uploaded",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: primaryGreen,
                       ),
                     ),
                   ),
               ],
             ),
           ),
-        ),
-      ],
+          GestureDetector(
+            onTap: isUploading ? null : onTap,
+            child: Container(
+              height: 160,
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    primaryGreen.withOpacity(0.05),
+                    accentGreen.withOpacity(0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: lightGreen.withOpacity(0.3),
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  if (imageFile != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(7),
+                      child: Image.file(
+                        imageFile,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                    )
+                  else
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: primaryGreen.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.cloud_upload,
+                              size: 40,
+                              color: primaryGreen,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "Tap to upload image",
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "JPG, PNG (Max 5MB)",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // Loading overlay
+                  if (isUploading)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              "Uploading...",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

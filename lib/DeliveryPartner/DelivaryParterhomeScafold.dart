@@ -60,12 +60,25 @@ class _DelivaryParterHomeScafoldState extends State<DelivaryParterHomeScafold> {
 
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Color(0xFF273E06);
+    const accentColor = Color(0xFF4A6B1E); // Lighter shade for accents
+
     return Scaffold(
-      // Single AppBar for all screens
+      // AppBar with custom theme
       appBar: AppBar(
-        automaticallyImplyLeading: false, // 🚫 Removes the back arrow
-        title: Text(_titles[_selectedIndex]),
+        automaticallyImplyLeading: false,
+        title: Text(
+          _titles[_selectedIndex],
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: primaryColor,
+        elevation: 4,
+        shadowColor: Colors.black26,
       ),
 
       // PageView for swipe functionality
@@ -75,17 +88,34 @@ class _DelivaryParterHomeScafoldState extends State<DelivaryParterHomeScafold> {
         children: _screens,
       ),
 
-      // Bottom Navigation Bar
+      // Bottom Navigation Bar with custom theme
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
+        backgroundColor: primaryColor,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.white60,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        selectedFontSize: 14,
+        unselectedFontSize: 12,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_bag),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag_outlined),
+            activeIcon: Icon(Icons.shopping_bag),
             label: 'Orders',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );

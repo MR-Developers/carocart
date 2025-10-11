@@ -12,11 +12,11 @@ class DeliveryPartnerHome extends StatefulWidget {
 class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
   late Future<Map<String, dynamic>> _dashboardFuture;
 
-  // Professional green theme colors
-  static const Color primaryGreen = Color(0xFF2E7D32);
-  static const Color lightGreen = Color(0xFF66BB6A);
-  static const Color darkGreen = Color(0xFF1B5E20);
-  static const Color accentGreen = Color(0xFF4CAF50);
+  // Updated theme colors based on Color(0xFF273E06)
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color darkGreen = Color(0xFF1A2B04);
+  static const Color accentGreen = Color(0xFF3B5A0F);
 
   @override
   void initState() {
@@ -119,7 +119,7 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1B5E20),
+                          color: Color(0xFF273E06),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -142,10 +142,10 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
                             icon: Icons.local_shipping,
                             title: "Available Orders",
                             value: availableOrders.length.toString(),
-                            color: const Color(0xFFFF9800),
+                            color: const Color(0xFF5C7A1F),
                             gradient: [
-                              const Color(0xFFFF9800),
-                              const Color(0xFFFFB74D),
+                              const Color(0xFF5C7A1F),
+                              const Color(0xFF7A9B3A),
                             ],
                           ),
                           _buildStatCard(
@@ -159,10 +159,10 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
                             icon: Icons.verified_user,
                             title: "Status",
                             value: "Active",
-                            color: const Color(0xFF2196F3),
+                            color: const Color(0xFF3D5610),
                             gradient: [
-                              const Color(0xFF2196F3),
-                              const Color(0xFF64B5F6),
+                              const Color(0xFF3D5610),
+                              const Color(0xFF567320),
                             ],
                           ),
                         ],

@@ -11,13 +11,17 @@ class DeliveryEarningsPage extends StatefulWidget {
 }
 
 class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
+  // Theme colors
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color darkGreen = Color(0xFF1A2B04);
+  static const Color accentGreen = Color(0xFF3B5A0F);
+
   String? _token;
   DateTime? _fromDate;
   DateTime? _toDate;
 
-  /// Holds summary data for today, week, and month
   Map<String, dynamic> _summaryData = {"today": {}, "week": {}, "month": {}};
-
   List<dynamic> _earningsList = [];
 
   bool _isLoading = true;
@@ -29,7 +33,6 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     _initializeData();
   }
 
-  /// Get token from local storage and load data
   Future<void> _initializeData() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
@@ -46,7 +49,6 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     await _fetchData();
   }
 
-  /// Fetch Summary first, then Earnings List
   Future<void> _fetchData() async {
     if (_token == null) return;
 
@@ -62,30 +64,21 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
 
       debugPrint("Fetching data sequentially...");
 
-      // Step 1: Fetch Summary Data
-      debugPrint("Fetching TODAY summary...");
       final todaySummary = await getDeliveryEarningsSummary(
         context,
         _token!,
         "today",
       );
-      debugPrint("Today Summary: $todaySummary");
-
-      debugPrint("Fetching WEEK summary...");
       final weekSummary = await getDeliveryEarningsSummary(
         context,
         _token!,
         "week",
       );
-      debugPrint("Week Summary: $weekSummary");
-
-      debugPrint("Fetching MONTH summary...");
       final monthSummary = await getDeliveryEarningsSummary(
         context,
         _token!,
         "month",
       );
-      debugPrint("Month Summary: $monthSummary");
 
       final combinedSummary = {
         "today": todaySummary,
@@ -93,22 +86,17 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
         "month": monthSummary,
       };
 
-      // Update UI immediately after summary fetch
       setState(() {
         _summaryData = combinedSummary;
       });
 
-      // Step 2: Fetch Earnings List
-      debugPrint("Fetching Earnings List...");
       final earnings = await getDeliveryEarnings(
         context,
         _token!,
         from: fromStr,
         to: toStr,
       );
-      debugPrint("Earnings List Response: $earnings");
 
-      // Final UI Update
       setState(() {
         _earningsList = earnings['data'] ?? [];
         _isLoading = false;
@@ -124,7 +112,6 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     }
   }
 
-  /// Open date picker
   Future<void> _selectDate({required bool isFrom}) async {
     final DateTime today = DateTime.now();
     final DateTime firstDate = DateTime(today.year - 1);
@@ -134,6 +121,18 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
       initialDate: today,
       firstDate: firstDate,
       lastDate: today,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: primaryGreen,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedDate != null) {
@@ -151,23 +150,39 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+          ),
+        ),
+      );
     }
 
     if (_isError) {
       return Scaffold(
+        backgroundColor: Colors.grey[50],
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error, color: Colors.red, size: 60),
-              const SizedBox(height: 10),
-              const Text(
+              Icon(Icons.error_outline, color: Colors.red[300], size: 64),
+              const SizedBox(height: 16),
+              Text(
                 "Something went wrong",
-                style: TextStyle(fontSize: 18, color: Colors.red),
+                style: TextStyle(fontSize: 18, color: Colors.red[700]),
               ),
-              const SizedBox(height: 10),
-              ElevatedButton(onPressed: _fetchData, child: const Text("Retry")),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: _fetchData,
+                icon: const Icon(Icons.refresh),
+                label: const Text("Retry"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryGreen,
+                  foregroundColor: Colors.white,
+                ),
+              ),
             ],
           ),
         ),
@@ -175,96 +190,206 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text("Earnings Details"),
+        title: const Text(
+          "Earnings Details",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.green,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [primaryGreen, accentGreen],
+            ),
+          ),
+        ),
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: Column(
             children: [
+              const SizedBox(height: 16),
               _buildSummaryCards(),
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
 
               // Date Range Filters
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // From Date
-                    Expanded(
-                      flex: 3,
-                      child: _buildDateButton(
-                        label: _fromDate != null
-                            ? DateFormat('dd MMM yyyy').format(_fromDate!)
-                            : "From Date",
-                        onTap: () => _selectDate(isFrom: true),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // To Date
-                    Expanded(
-                      flex: 3,
-                      child: _buildDateButton(
-                        label: _toDate != null
-                            ? DateFormat('dd MMM yyyy').format(_toDate!)
-                            : "To Date",
-                        onTap: () => _selectDate(isFrom: false),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    // Filter Button
-                    Flexible(
-                      flex: 2,
-                      child: ElevatedButton(
-                        onPressed: _fetchData,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          fixedSize: const Size(
-                            56,
-                            56,
-                          ), // Equal width and height
-                          shape: const CircleBorder(), // Circular shape
-                          padding: const EdgeInsets.all(12),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                primaryGreen.withOpacity(0.1),
+                                accentGreen.withOpacity(0.1),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(
+                            Icons.filter_list,
+                            color: primaryGreen,
+                            size: 18,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.refresh,
-                          size: 24,
-                          color: Colors.white,
+                        const SizedBox(width: 8),
+                        Text(
+                          "Filter by Date",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: primaryGreen,
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDateButton(
+                            label: _fromDate != null
+                                ? DateFormat('dd MMM yyyy').format(_fromDate!)
+                                : "From Date",
+                            onTap: () => _selectDate(isFrom: true),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildDateButton(
+                            label: _toDate != null
+                                ? DateFormat('dd MMM yyyy').format(_toDate!)
+                                : "To Date",
+                            onTap: () => _selectDate(isFrom: false),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [primaryGreen, accentGreen],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: primaryGreen.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(28),
+                              onTap: _fetchData,
+                              child: const SizedBox(
+                                width: 56,
+                                height: 56,
+                                child: Icon(
+                                  Icons.refresh,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 20),
 
               // Earnings List
               if (_earningsList.isEmpty)
-                const Center(
+                Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text(
-                      "No earnings data available",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 64,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "No earnings data available",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 )
               else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _earningsList.length,
-                  itemBuilder: (context, index) {
-                    final item = _earningsList[index];
-                    return _buildEarningsItem(item);
-                  },
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  primaryGreen.withOpacity(0.1),
+                                  accentGreen.withOpacity(0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Icon(
+                              Icons.history,
+                              color: primaryGreen,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Transaction History",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: primaryGreen,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _earningsList.length,
+                      itemBuilder: (context, index) {
+                        final item = _earningsList[index];
+                        return _buildEarningsItem(item);
+                      },
+                    ),
+                  ],
                 ),
             ],
           ),
@@ -273,24 +398,34 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     );
   }
 
-  /// Builds three summary cards for today, week, month
   Widget _buildSummaryCards() {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          _buildSummaryCard("Today", _summaryData["today"]),
-          const SizedBox(height: 10),
-          _buildSummaryCard("This Week", _summaryData["week"]),
-          const SizedBox(height: 10),
-          _buildSummaryCard("This Month", _summaryData["month"]),
+          _buildSummaryCard("Today", _summaryData["today"], Icons.today),
+          const SizedBox(height: 12),
+          _buildSummaryCard(
+            "This Week",
+            _summaryData["week"],
+            Icons.calendar_view_week,
+          ),
+          const SizedBox(height: 12),
+          _buildSummaryCard(
+            "This Month",
+            _summaryData["month"],
+            Icons.calendar_month,
+          ),
         ],
       ),
     );
   }
 
-  /// Single summary card
-  Widget _buildSummaryCard(String title, Map<String, dynamic>? data) {
+  Widget _buildSummaryCard(
+    String title,
+    Map<String, dynamic>? data,
+    IconData icon,
+  ) {
     final deliveredCount = data?['deliveredCount'] ?? 0;
     final totalFee = data?['totalFee'] ?? 0;
     final totalTip = data?['totalTip'] ?? 0;
@@ -298,51 +433,111 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     final net = data?['net'] ?? 0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green.shade100),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: lightGreen.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: primaryGreen.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryGreen.withOpacity(0.1),
+                      accentGreen.withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: primaryGreen, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
 
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildSummaryItem("Delivered", "$deliveredCount"),
-              _buildSummaryItem("Tips", "₹$totalTip"),
-              _buildSummaryItem("Penalty", "₹$totalPenalty"),
+              _buildSummaryItem(
+                "Delivered",
+                "$deliveredCount",
+                Icons.check_circle_outline,
+              ),
+              _buildSummaryItem(
+                "Tips",
+                "₹$totalTip",
+                Icons.volunteer_activism_outlined,
+              ),
+              _buildSummaryItem(
+                "Penalty",
+                "₹$totalPenalty",
+                Icons.warning_amber_outlined,
+              ),
             ],
           ),
 
           const Divider(height: 30),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.currency_rupee, color: Colors.green, size: 28),
-              Text(
-                net.toString(),
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  primaryGreen.withOpacity(0.1),
+                  accentGreen.withOpacity(0.1),
+                ],
               ),
-            ],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.account_balance_wallet,
+                  color: primaryGreen,
+                  size: 28,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "₹$net",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: primaryGreen,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 8),
           const Center(
             child: Text(
               "Net Earnings",
-              style: TextStyle(color: Colors.black54),
+              style: TextStyle(
+                color: Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -350,44 +545,144 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String value) {
+  Widget _buildSummaryItem(String label, String value, IconData icon) {
     return Column(
       children: [
+        Icon(icon, size: 20, color: primaryGreen),
+        const SizedBox(height: 6),
         Text(
           value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
+        const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 14, color: Colors.black54),
+          style: const TextStyle(fontSize: 12, color: Colors.black54),
         ),
       ],
     );
   }
 
-  /// Date Picker Button
   Widget _buildDateButton({
     required String label,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.green.shade200),
-          borderRadius: BorderRadius.circular(8),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: lightGreen.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: primaryGreen.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today, size: 18, color: primaryGreen),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        child: Row(
+      ),
+    );
+  }
+
+  Widget _buildEarningsItem(dynamic item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: lightGreen.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: primaryGreen.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.calendar_today, size: 18, color: Colors.green),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 14, color: Colors.black87),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 16,
+                      color: primaryGreen,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      DateFormat(
+                        'dd MMM yyyy',
+                      ).format(DateTime.parse(item['deliveredAt'])),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primaryGreen, accentGreen],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    item['status'],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildAmountDetail("Fee", item['fee']),
+                _buildAmountDetail("Tip", item['tip']),
+                _buildAmountDetail("Penalty", item['penalty']),
+                _buildAmountDetail("Net", item['netAmount'], isHighlight: true),
+              ],
             ),
           ],
         ),
@@ -395,67 +690,25 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     );
   }
 
-  /// Earnings Item Widget
-  Widget _buildEarningsItem(dynamic item) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top Row - Date & Status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Delivered: ${DateFormat('dd MMM yyyy').format(DateTime.parse(item['deliveredAt']))}",
-                style: const TextStyle(fontSize: 14, color: Colors.black87),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  item['status'],
-                  style: const TextStyle(color: Colors.green, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Fee, Tip, Penalty, Net Amount
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildAmountDetail("Fee", item['fee']),
-              _buildAmountDetail("Tip", item['tip']),
-              _buildAmountDetail("Penalty", item['penalty']),
-              _buildAmountDetail("Net", item['netAmount']),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAmountDetail(String title, dynamic value) {
+  Widget _buildAmountDetail(
+    String title,
+    dynamic value, {
+    bool isHighlight = false,
+  }) {
     return Column(
       children: [
         Text(
           "₹${value ?? 0}",
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: isHighlight ? primaryGreen : Colors.black87,
+          ),
         ),
+        const SizedBox(height: 2),
         Text(
           title,
-          style: const TextStyle(fontSize: 12, color: Colors.black54),
+          style: const TextStyle(fontSize: 11, color: Colors.black54),
         ),
       ],
     );

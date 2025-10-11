@@ -2,8 +2,8 @@ import 'package:carocart/DeliveryPartner/DelivaryParterhomeScafold.dart';
 import 'package:carocart/DeliveryPartner/DeliveryPartnerSignup.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ For local storage
-import '../Apis/delivery.Person.dart'; // ✅ Import the API functions
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Apis/delivery.Person.dart';
 
 class DeliveryPartnerLoginScreen extends StatefulWidget {
   const DeliveryPartnerLoginScreen({super.key});
@@ -15,20 +15,28 @@ class DeliveryPartnerLoginScreen extends StatefulWidget {
 
 class _DeliveryPartnerLoginScreenState
     extends State<DeliveryPartnerLoginScreen> {
+  // Theme colors
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color darkGreen = Color(0xFF1A2B04);
+  static const Color accentGreen = Color(0xFF3B5A0F);
+
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _agreeTerms = true;
+  bool _obscurePassword = true;
 
-  /// ✅ Handle login
   Future<void> _handleLogin() async {
     final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
 
     if (phone.isEmpty || phone.length != 10) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter a valid 10-digit phone number"),
+        SnackBar(
+          content: const Text("Please enter a valid 10-digit phone number"),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
         ),
       );
       return;
@@ -36,7 +44,22 @@ class _DeliveryPartnerLoginScreenState
 
     if (password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your password")),
+        SnackBar(
+          content: const Text("Please enter your password"),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (!_agreeTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Please agree to terms and conditions"),
+          backgroundColor: Colors.orange[700],
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -54,15 +77,17 @@ class _DeliveryPartnerLoginScreenState
       if (response.isNotEmpty && response['token'] != null) {
         final token = response['token'];
 
-        /// ✅ Save token to local storage
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('authToken', token);
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Login Successful")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Login Successful"),
+            backgroundColor: primaryGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
 
-        /// Navigate to home screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -71,24 +96,30 @@ class _DeliveryPartnerLoginScreenState
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'] ?? "Invalid credentials")),
+          SnackBar(
+            content: Text(response['message'] ?? "Invalid credentials"),
+            backgroundColor: Colors.red[700],
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Login failed: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login failed: $e"),
+          backgroundColor: Colors.red[700],
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
-  /// ✅ Retrieve Token (For API calls or checking if logged in)
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
   }
 
-  /// ✅ Logout Function
   Future<void> logoutUser(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('authToken');
@@ -104,21 +135,21 @@ class _DeliveryPartnerLoginScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              /// ======= Header Section with Curve =======
+              // Header Section with Gradient
               ClipPath(
                 clipper: BottomCurveClipper(),
                 child: Container(
                   width: double.infinity,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF4CAF50), Color(0xFF81C784)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                      colors: [primaryGreen, accentGreen],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(
@@ -138,8 +169,8 @@ class _DeliveryPartnerLoginScreenState
                           "Be A Partner",
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white70,
                           ),
                         ),
                       ),
@@ -148,9 +179,10 @@ class _DeliveryPartnerLoginScreenState
                         child: Text(
                           "Get a Stable Monthly\nIncome",
                           style: TextStyle(
-                            fontSize: 26,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Colors.white,
+                            height: 1.2,
                           ),
                         ),
                       ),
@@ -159,128 +191,244 @@ class _DeliveryPartnerLoginScreenState
                 ),
               ),
 
-              /// ======= Login Form =======
+              // Login Form
               Padding(
-                padding: const EdgeInsets.only(left: 20, right: 20, top: 0),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Phone Field
-                    const Text(
+                    // Welcome Text
+                    Text(
+                      "Welcome Back!",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: primaryGreen,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Login to continue earning",
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Phone Field
+                    Text(
                       "Phone Number",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
+                        color: primaryGreen,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 10,
-                      decoration: InputDecoration(
-                        hintText: "Enter your phone number",
-                        counterText: "",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: lightGreen.withOpacity(0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryGreen.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        maxLength: 10,
+                        decoration: InputDecoration(
+                          hintText: "Enter your phone number",
+                          counterText: "",
+                          prefixIcon: Icon(
+                            Icons.phone_outlined,
+                            color: primaryGreen,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 20),
 
-                    /// Password Field
-                    const Text(
+                    // Password Field
+                    Text(
                       "Password",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
+                        color: primaryGreen,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: "Enter your password",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: lightGreen.withOpacity(0.3)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryGreen.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          hintText: "Enter your password",
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: primaryGreen,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: primaryGreen,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 20),
 
-                    /// Terms and Conditions
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _agreeTerms,
-                          onChanged: (value) {
-                            setState(() {
-                              _agreeTerms = value ?? false;
-                            });
-                          },
-                        ),
-                        const Expanded(
-                          child: Text.rich(
-                            TextSpan(
-                              text: "By signing up I agree to the ",
-                              style: TextStyle(fontSize: 14),
-                              children: [
-                                TextSpan(
-                                  text: "Terms of use",
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                                TextSpan(text: " and "),
-                                TextSpan(
-                                  text: "Privacy Policy.",
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    decoration: TextDecoration.underline,
-                                  ),
-                                ),
-                              ],
+                    // Terms and Conditions
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: primaryGreen.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: lightGreen.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Transform.scale(
+                            scale: 1.1,
+                            child: Checkbox(
+                              value: _agreeTerms,
+                              onChanged: (value) {
+                                setState(() {
+                                  _agreeTerms = value ?? false;
+                                });
+                              },
+                              activeColor: primaryGreen,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          Expanded(
+                            child: Text.rich(
+                              TextSpan(
+                                text: "By signing in I agree to the ",
+                                style: const TextStyle(fontSize: 13),
+                                children: [
+                                  TextSpan(
+                                    text: "Terms of use",
+                                    style: TextStyle(
+                                      color: primaryGreen,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                  const TextSpan(text: " and "),
+                                  TextSpan(
+                                    text: "Privacy Policy",
+                                    style: TextStyle(
+                                      color: primaryGreen,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
 
-                    /// Login Button
-                    SizedBox(
+                    // Login Button
+                    Container(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _handleLogin,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [primaryGreen, accentGreen],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryGreen.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: _isLoading ? null : _handleLogin,
+                          child: Center(
+                            child: _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.login,
+                                        color: Colors.white,
+                                        size: 22,
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        "Login",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                "Login",
-                                style: TextStyle(fontSize: 18),
-                              ),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-                    /// Sign Up Navigation
+                    // Sign Up Navigation
                     Center(
                       child: GestureDetector(
                         onTap: () {
@@ -292,17 +440,18 @@ class _DeliveryPartnerLoginScreenState
                             ),
                           );
                         },
-                        child: const Text.rich(
+                        child: Text.rich(
                           TextSpan(
                             text: "No account? ",
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 15),
                             children: [
                               TextSpan(
                                 text: "Sign Up",
                                 style: TextStyle(
-                                  color: Colors.blue,
+                                  color: primaryGreen,
                                   fontWeight: FontWeight.bold,
                                   decoration: TextDecoration.underline,
+                                  fontSize: 15,
                                 ),
                               ),
                             ],
@@ -310,6 +459,7 @@ class _DeliveryPartnerLoginScreenState
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -318,6 +468,13 @@ class _DeliveryPartnerLoginScreenState
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
 
@@ -340,17 +497,4 @@ class BottomCurveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
-}
-
-/// Dummy Registration Screen
-class RegistrationScreen extends StatelessWidget {
-  const RegistrationScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Registration")),
-      body: const Center(child: Text("Registration Page Content Here")),
-    );
-  }
 }

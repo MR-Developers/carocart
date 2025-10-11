@@ -3,7 +3,6 @@ import 'package:carocart/DeliveryPartner/DeliveryPartnerData.dart';
 import 'package:carocart/DeliveryPartner/PersonalDocumentUploadPage.dart';
 import 'package:carocart/DeliveryPartner/VehicleDetailsPage.dart';
 import 'package:flutter/material.dart';
-// Import the data model
 
 class DeliveryDocVerification extends StatefulWidget {
   final DeliveryPartnerData? deliveryData;
@@ -16,6 +15,12 @@ class DeliveryDocVerification extends StatefulWidget {
 }
 
 class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
+  // Theme colors
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color darkGreen = Color(0xFF1A2B04);
+  static const Color accentGreen = Color(0xFF3B5A0F);
+
   bool isPersonalDocCompleted = false;
   bool isVehicleDetailsCompleted = false;
   bool isBankDetailsCompleted = false;
@@ -24,24 +29,13 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
   @override
   void initState() {
     super.initState();
-    // Check if documents are already completed based on the deliveryData
     _checkCompletionStatus();
   }
 
   void _checkCompletionStatus() {
-    // You can add logic here to check if documents are already filled
-    // For example, check if certain fields in deliveryData are not null/empty
-    // This is just an example - adjust based on your DeliveryPartnerData structure
-
     if (widget.deliveryData != null) {
-      // Example: Check if personal documents are completed
-      // Adjust these conditions based on your actual data structure
       setState(() {
         // Add your own logic to check completion status
-        // isPersonalDocCompleted = widget.deliveryData!.somePersonalField != null;
-        // isVehicleDetailsCompleted = widget.deliveryData!.someVehicleField != null;
-        // isBankDetailsCompleted = widget.deliveryData!.someBankField != null;
-        // isEmergencyDetailsCompleted = widget.deliveryData!.someEmergencyField != null;
       });
     }
   }
@@ -49,224 +43,466 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ Header Section with Gradient
+          // Header Section with Gradient
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF4CAF50), Color(0xFF2ECC71)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+                colors: [primaryGreen, accentGreen],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryGreen.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-                Text(
-                  "Welcome ${widget.deliveryData?.firstName ?? 'User'}!",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Just a few steps to complete and then you can start earning with Us",
-                  style: TextStyle(fontSize: 14, color: Colors.white70),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.verified_user,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Welcome ${widget.deliveryData?.firstName ?? 'User'}!",
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            "Complete your profile to start earning",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // ✅ All Documents Section (Always visible for editing)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              "Document Verification",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          // Document Verification Section
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        primaryGreen.withOpacity(0.1),
+                        accentGreen.withOpacity(0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.assignment_outlined,
+                    color: primaryGreen,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  "Document Verification",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryGreen,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
 
-          // ✅ All document tiles - always visible and editable
+          // Document tiles
           _buildEditableDocTile(
             context,
             "Personal Documents",
             isPersonalDocCompleted,
+            Icons.person_outline,
           ),
           _buildEditableDocTile(
             context,
             "Vehicle Details",
             isVehicleDetailsCompleted,
+            Icons.directions_car_outlined,
           ),
           _buildEditableDocTile(
             context,
             "Bank Account Details",
             isBankDetailsCompleted,
+            Icons.account_balance_outlined,
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // ✅ Progress Indicator
+          // Progress Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Progress",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: _getCompletionPercentage(),
-                  backgroundColor: Colors.grey[300],
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  "${(_getCompletionPercentage() * 100).toInt()}% Complete",
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: lightGreen.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryGreen.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              primaryGreen.withOpacity(0.1),
+                              accentGreen.withOpacity(0.1),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Icon(
+                          Icons.trending_up,
+                          color: primaryGreen,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        "Your Progress",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: _getCompletionPercentage(),
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+                      minHeight: 8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${(_getCompletionPercentage() * 100).toInt()}% Complete",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: primaryGreen,
+                        ),
+                      ),
+                      Text(
+                        "${_getCompletedCount()}/3 Steps",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
 
           const Spacer(),
 
-          // ✅ Print Data Button (for testing)
+          // Action Buttons
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Print all data to console
-                  widget.deliveryData?.printAllData();
-
-                  // Show snackbar for user feedback
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Data printed to console! Check debug output.",
-                      ),
-                      backgroundColor: Colors.blue,
+            child: Column(
+              children: [
+                // Print Data Button
+                Container(
+                  width: double.infinity,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue[600]!, Colors.blue[400]!],
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  "Print All Data",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // ✅ Submit Button
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Check if all documents are completed
-                  if (_isAllDocumentsCompleted()) {
-                    // Show confirmation dialog before submitting
-                    _showSubmitConfirmationDialog();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "Please complete all document uploads first.",
-                        ),
-                        backgroundColor: Colors.orange,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isAllDocumentsCompleted()
-                      ? Colors.green
-                      : Colors.grey,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        widget.deliveryData?.printAllData();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              "Data printed to console! Check debug output.",
+                            ),
+                            backgroundColor: Colors.blue[700],
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      child: const Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.print_outlined,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "Print All Data",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                child: const Text(
-                  "Submit Application",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+                const SizedBox(height: 12),
+
+                // Submit Button
+                Container(
+                  width: double.infinity,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    gradient: _isAllDocumentsCompleted()
+                        ? LinearGradient(colors: [primaryGreen, accentGreen])
+                        : LinearGradient(
+                            colors: [Colors.grey[400]!, Colors.grey[300]!],
+                          ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: _isAllDocumentsCompleted()
+                        ? [
+                            BoxShadow(
+                              color: primaryGreen.withOpacity(0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: _isAllDocumentsCompleted()
+                          ? () {
+                              _showSubmitConfirmationDialog();
+                            }
+                          : () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    "Please complete all document uploads first.",
+                                  ),
+                                  backgroundColor: Colors.orange[700],
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                      child: const Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.check_circle_outline,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              "Submit Application",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  // ✅ New Editable Doc Tile that shows status and allows editing
   Widget _buildEditableDocTile(
     BuildContext context,
     String title,
     bool isCompleted,
+    IconData icon,
   ) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 1,
-      child: ListTile(
-        leading: Icon(
-          isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: isCompleted ? Colors.green : Colors.grey,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCompleted
+              ? primaryGreen.withOpacity(0.5)
+              : lightGreen.withOpacity(0.3),
+          width: isCompleted ? 2 : 1,
         ),
-        title: Text(
-          title,
-          style: TextStyle(
-            fontSize: 15,
-            color: isCompleted ? Colors.black : Colors.grey[700],
+        boxShadow: [
+          BoxShadow(
+            color: primaryGreen.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _navigateToDocumentPage(context, title, isCompleted),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    gradient: isCompleted
+                        ? LinearGradient(colors: [primaryGreen, accentGreen])
+                        : LinearGradient(
+                            colors: [Colors.grey[300]!, Colors.grey[200]!],
+                          ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    isCompleted ? Icons.check_circle : icon,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: isCompleted
+                              ? Colors.black87
+                              : Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isCompleted
+                            ? "Completed - Tap to edit"
+                            : "Tap to complete",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isCompleted ? primaryGreen : Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: isCompleted
+                        ? primaryGreen.withOpacity(0.1)
+                        : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    isCompleted ? Icons.edit_outlined : Icons.arrow_forward_ios,
+                    size: 16,
+                    color: isCompleted ? primaryGreen : Colors.grey,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        subtitle: Text(
-          isCompleted ? "Completed - Tap to edit" : "Tap to complete",
-          style: TextStyle(
-            fontSize: 12,
-            color: isCompleted ? Colors.green : Colors.grey,
-          ),
-        ),
-        trailing: Icon(
-          isCompleted ? Icons.edit : Icons.arrow_forward_ios,
-          size: 16,
-          color: Colors.green,
-        ),
-        onTap: () => _navigateToDocumentPage(context, title, isCompleted),
       ),
     );
   }
 
-  // ✅ Navigation logic for document pages
   Future<void> _navigateToDocumentPage(
     BuildContext context,
     String title,
@@ -283,7 +519,6 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
         ),
       );
 
-      // Update completion status based on result
       if (result == true) {
         setState(() {
           isPersonalDocCompleted = true;
@@ -320,46 +555,32 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
         });
         _showSuccessMessage("Bank details updated successfully!");
       }
-    } else if (title == "Emergency Details") {
-      // For now, just mark as completed - implement your emergency details page
-      setState(() {
-        isEmergencyDetailsCompleted = !isEmergencyDetailsCompleted;
-      });
-
-      if (isEmergencyDetailsCompleted) {
-        _showSuccessMessage("Emergency details completed!");
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Emergency details page - Coming Soon!"),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
     }
   }
 
-  // ✅ Helper methods
   bool _isAllDocumentsCompleted() {
     return isPersonalDocCompleted &&
         isVehicleDetailsCompleted &&
         isBankDetailsCompleted;
   }
 
-  double _getCompletionPercentage() {
-    int completedCount = 0;
-    if (isPersonalDocCompleted) completedCount++;
-    if (isVehicleDetailsCompleted) completedCount++;
-    if (isBankDetailsCompleted) completedCount++;
+  int _getCompletedCount() {
+    int count = 0;
+    if (isPersonalDocCompleted) count++;
+    if (isVehicleDetailsCompleted) count++;
+    if (isBankDetailsCompleted) count++;
+    return count;
+  }
 
-    return completedCount / 3.0;
+  double _getCompletionPercentage() {
+    return _getCompletedCount() / 3.0;
   }
 
   void _showSuccessMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: primaryGreen,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -370,7 +591,28 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Submit Application"),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      primaryGreen.withOpacity(0.1),
+                      accentGreen.withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Icons.send_outlined, color: primaryGreen),
+              ),
+              const SizedBox(width: 12),
+              const Text("Submit Application"),
+            ],
+          ),
           content: const Text(
             "Are you sure you want to submit your application? "
             "You can still edit your details after submission if needed.",
@@ -382,14 +624,15 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
             ),
             ElevatedButton(
               onPressed: () {
+                Navigator.of(context).pop();
                 widget.deliveryData?.submitData(context);
                 _submitApplication();
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              child: const Text(
-                "Submit",
-                style: TextStyle(color: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryGreen,
+                foregroundColor: Colors.white,
               ),
+              child: const Text("Submit"),
             ),
           ],
         );
@@ -398,14 +641,14 @@ class _DeliveryDocVerificationState extends State<DeliveryDocVerification> {
   }
 
   void _submitApplication() {
-    // Add your submission logic here
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
+      SnackBar(
+        content: const Text(
           "Application submitted successfully! You can still edit your details anytime.",
         ),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 3),
+        backgroundColor: primaryGreen,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

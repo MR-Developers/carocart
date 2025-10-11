@@ -13,6 +13,12 @@ class DeliveryPartnerOrder extends StatefulWidget {
 class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
   int _selectedIndex = 0;
 
+  // Theme colors based on Color(0xFF273E06)
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color darkGreen = Color(0xFF1A2B04);
+  static const Color accentGreen = Color(0xFF3B5A0F);
+
   List<Map<String, dynamic>> assignedOrders = [];
   List<Map<String, dynamic>> availableOrders = [];
 
@@ -48,7 +54,7 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('No token found, please login again.'),
-              backgroundColor: Colors.red[700],
+              backgroundColor: primaryGreen,
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -122,7 +128,20 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
           : Column(
               children: [
                 Container(
-                  color: Colors.green[700],
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [primaryGreen, accentGreen],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryGreen.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
@@ -148,7 +167,7 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _handleRefresh,
-                    color: Colors.green[700],
+                    color: primaryGreen,
                     child: IndexedStack(
                       index: _selectedIndex,
                       children: [
@@ -193,7 +212,7 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[700],
+                backgroundColor: primaryGreen,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -213,7 +232,7 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.green[700]!),
+            valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
           ),
           const SizedBox(height: 16),
           Text(
@@ -238,12 +257,15 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.green[600],
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(12),
+            border: isSelected
+                ? null
+                : Border.all(color: Colors.white.withOpacity(0.3), width: 1),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withOpacity(0.15),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -257,7 +279,7 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
               Text(
                 text,
                 style: TextStyle(
-                  color: isSelected ? Colors.green[700] : Colors.white,
+                  color: isSelected ? primaryGreen : Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -269,13 +291,16 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.green[700] : Colors.white,
+                  gradient: isSelected
+                      ? LinearGradient(colors: [primaryGreen, accentGreen])
+                      : null,
+                  color: isSelected ? null : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   count.toString(),
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.green[700],
+                    color: isSelected ? Colors.white : primaryGreen,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -292,6 +317,10 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
 class AssignedOrdersScreen extends StatelessWidget {
   final List<Map<String, dynamic>> orders;
   final VoidCallback onRefresh;
+
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color accentGreen = Color(0xFF3B5A0F);
 
   const AssignedOrdersScreen({
     super.key,
@@ -345,11 +374,12 @@ class AssignedOrdersScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: lightGreen.withOpacity(0.3), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: primaryGreen.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -370,12 +400,17 @@ class AssignedOrdersScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.green[50],
+                        gradient: LinearGradient(
+                          colors: [
+                            primaryGreen.withOpacity(0.1),
+                            accentGreen.withOpacity(0.1),
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
                         Icons.shopping_bag_outlined,
-                        color: Colors.green[700],
+                        color: primaryGreen,
                         size: 24,
                       ),
                     ),
@@ -391,15 +426,28 @@ class AssignedOrdersScreen extends StatelessWidget {
                               fontSize: 16,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: 10,
+                              vertical: 5,
                             ),
                             decoration: BoxDecoration(
-                              color: _getStatusColor(order["deliveryStatus"]),
-                              borderRadius: BorderRadius.circular(6),
+                              gradient: LinearGradient(
+                                colors: _getStatusGradient(
+                                  order["deliveryStatus"],
+                                ),
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _getStatusColor(
+                                    order["deliveryStatus"],
+                                  ).withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Text(
                               order["deliveryStatus"] ?? "Unknown",
@@ -413,10 +461,17 @@ class AssignedOrdersScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 18,
-                      color: Colors.green[700],
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryGreen.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 18,
+                        color: primaryGreen,
+                      ),
                     ),
                   ],
                 ),
@@ -479,11 +534,25 @@ class AssignedOrdersScreen extends StatelessWidget {
         return Colors.orange[600]!;
       case 'in_transit':
       case 'picked_up':
-        return Colors.blue[600]!;
+        return const Color(0xFF4A6B1E);
       case 'delivered':
-        return Colors.green[600]!;
+        return primaryGreen;
       default:
         return Colors.grey[600]!;
+    }
+  }
+
+  List<Color> _getStatusGradient(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return [Colors.orange[600]!, Colors.orange[400]!];
+      case 'in_transit':
+      case 'picked_up':
+        return [const Color(0xFF4A6B1E), const Color(0xFF5C7A1F)];
+      case 'delivered':
+        return [primaryGreen, accentGreen];
+      default:
+        return [Colors.grey[600]!, Colors.grey[400]!];
     }
   }
 }
@@ -492,11 +561,25 @@ class AvailableOrdersScreen extends StatelessWidget {
   final List<Map<String, dynamic>> orders;
   final VoidCallback onRefresh;
 
+  static const Color primaryGreen = Color(0xFF273E06);
+  static const Color lightGreen = Color(0xFF4A6B1E);
+  static const Color darkGreen = Color(0xFF1A2B04);
+  static const Color accentGreen = Color(0xFF3B5A0F);
+
   const AvailableOrdersScreen({
     super.key,
     required this.orders,
     required this.onRefresh,
   });
+
+  // Helper method to safely extract orderId from various types
+  int? _extractOrderId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value);
+    if (value is num) return value.toInt();
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -549,17 +632,23 @@ class AvailableOrdersScreen extends StatelessWidget {
     final addressLng = (order["addressLng"] ?? 0.0) as double;
     final distance = haversineKm(vendorLat, vendorLng, addressLat, addressLng);
 
+    final String status = (order["status"] ?? "").toString().toLowerCase();
+    final bool isDelivered = status == "delivered";
+
+    // Use the helper method to safely extract orderId
+    final int? orderId = _extractOrderId(order["orderId"]);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.green[100]!, width: 1),
+        border: Border.all(color: lightGreen.withOpacity(0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: primaryGreen.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -577,12 +666,17 @@ class AvailableOrdersScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.green[50],
+                          gradient: LinearGradient(
+                            colors: [
+                              primaryGreen.withOpacity(0.1),
+                              accentGreen.withOpacity(0.1),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
                           Icons.shopping_bag_outlined,
-                          color: Colors.green[700],
+                          color: primaryGreen,
                           size: 24,
                         ),
                       ),
@@ -598,17 +692,26 @@ class AvailableOrdersScreen extends StatelessWidget {
                                 fontSize: 16,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             Row(
                               children: [
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
+                                    horizontal: 10,
+                                    vertical: 5,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.green[700],
-                                    borderRadius: BorderRadius.circular(6),
+                                    gradient: LinearGradient(
+                                      colors: [primaryGreen, accentGreen],
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: primaryGreen.withOpacity(0.3),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   child: Text(
                                     order["status"] ?? "Unknown",
@@ -622,25 +725,30 @@ class AvailableOrdersScreen extends StatelessWidget {
                                 const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
+                                    horizontal: 10,
+                                    vertical: 5,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue[50],
-                                    borderRadius: BorderRadius.circular(6),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color(0xFF5C7A1F),
+                                        const Color(0xFF7A9B3A),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.directions_car,
                                         size: 12,
-                                        color: Colors.blue[700],
+                                        color: Colors.white,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
                                         "${distance.toStringAsFixed(2)} KM",
-                                        style: TextStyle(
-                                          color: Colors.blue[700],
+                                        style: const TextStyle(
+                                          color: Colors.white,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -684,11 +792,24 @@ class AvailableOrdersScreen extends StatelessWidget {
             ),
             Container(
               decoration: BoxDecoration(
-                color: Colors.green[700],
+                gradient: isDelivered
+                    ? LinearGradient(
+                        colors: [Colors.grey[400]!, Colors.grey[300]!],
+                      )
+                    : LinearGradient(colors: [primaryGreen, accentGreen]),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDelivered
+                        ? Colors.grey.withOpacity(0.2)
+                        : primaryGreen.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
               ),
               child: Material(
                 color: Colors.transparent,
@@ -697,33 +818,78 @@ class AvailableOrdersScreen extends StatelessWidget {
                     bottomLeft: Radius.circular(16),
                     bottomRight: Radius.circular(16),
                   ),
-                  onTap: () {
-                    print(order);
-                    // TODO: Implement accept order logic
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Accepting order: ${order["productName"]}',
-                        ),
-                        backgroundColor: Colors.green[700],
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  },
+                  onTap: isDelivered
+                      ? null
+                      : () async {
+                          try {
+                            final prefs = await SharedPreferences.getInstance();
+                            final token = prefs.getString('authToken');
+
+                            if (token == null || token.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Authentication token not found',
+                                  ),
+                                  backgroundColor: Colors.red[700],
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+
+                            if (orderId == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Invalid order ID'),
+                                  backgroundColor: Colors.red[700],
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Call the API
+                            await selfAssignOrder(context, token, orderId);
+
+                            // Refresh the orders after assignment
+                            onRefresh();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Order accepted: ${order["productName"]}',
+                                ),
+                                backgroundColor: primaryGreen,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error accepting order: $e'),
+                                backgroundColor: Colors.red[700],
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(
-                          Icons.check_circle_outline,
+                          isDelivered
+                              ? Icons.check_circle
+                              : Icons.check_circle_outline,
                           color: Colors.white,
                           size: 20,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
-                          'Accept Order',
-                          style: TextStyle(
+                          isDelivered ? 'Already Delivered' : 'Accept Order',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

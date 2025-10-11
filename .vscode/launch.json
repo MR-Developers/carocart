@@ -7,7 +7,7 @@
       "type": "dart",
       "program": "lib/main.dart",
       "args": [
-        "--dart-define=BASE_URL=http://10.127.144.53"
+        "--dart-define=BASE_URL=http://172.18.148.53"
       ]
     },
     {
