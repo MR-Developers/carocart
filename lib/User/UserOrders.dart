@@ -537,6 +537,19 @@ class _UserOrdersPageState extends State<UserOrdersPage>
                                   imageUrl: items[0]['productImageUrl'],
                                   cacheManager: MyCacheManager(),
                                   fit: BoxFit.cover,
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        height: 160,
+                                        width: double.infinity,
+                                        color: Colors.grey.shade200,
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.image,
+                                            size: 48,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
                                 )
                               : Container(
                                   decoration: BoxDecoration(

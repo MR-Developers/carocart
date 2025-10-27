@@ -587,6 +587,25 @@ class _PaymentPageState extends State<PaymentPage>
                                                   width: 70,
                                                   height: 70,
                                                   fit: BoxFit.cover,
+                                                  errorWidget:
+                                                      (
+                                                        context,
+                                                        url,
+                                                        error,
+                                                      ) => Container(
+                                                        height: 160,
+                                                        width: double.infinity,
+                                                        color: Colors
+                                                            .grey
+                                                            .shade200,
+                                                        child: const Center(
+                                                          child: Icon(
+                                                            Icons.image,
+                                                            size: 48,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                                      ),
                                                 ),
                                               ),
                                             ),

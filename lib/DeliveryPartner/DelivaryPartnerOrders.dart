@@ -38,7 +38,7 @@ class _DeliveryPartnerOrderState extends State<DeliveryPartnerOrder> {
   Future<void> _loadTokenAndFetchOrders() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final storedToken = prefs.getString('authToken');
+      final storedToken = prefs.getString('auth_token');
 
       if (storedToken != null && storedToken.isNotEmpty) {
         setState(() {
@@ -823,7 +823,7 @@ class AvailableOrdersScreen extends StatelessWidget {
                       : () async {
                           try {
                             final prefs = await SharedPreferences.getInstance();
-                            final token = prefs.getString('authToken');
+                            final token = prefs.getString('auth_token');
 
                             if (token == null || token.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(

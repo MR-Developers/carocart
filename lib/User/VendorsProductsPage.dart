@@ -1252,6 +1252,18 @@ class _VendorProductsPageState extends State<VendorProductsPage>
                               imageUrl: vendor!["profileImageUrl"],
                               cacheManager: MyCacheManager(),
                               fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => Container(
+                                height: 160,
+                                width: double.infinity,
+                                color: Colors.grey.shade200,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 48,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
                             )
                           : Container(
                               decoration: BoxDecoration(

@@ -35,7 +35,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
 
   Future<void> _initializeData() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final token = prefs.getString('auth_token');
 
     if (token == null || token.isEmpty) {
       setState(() {

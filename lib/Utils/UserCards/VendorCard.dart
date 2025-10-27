@@ -117,6 +117,18 @@ class VendorCard extends StatelessWidget {
                           height: 160,
                           width: double.infinity,
                           fit: BoxFit.cover,
+                          errorWidget: (context, url, error) => Container(
+                            height: 160,
+                            width: double.infinity,
+                            color: Colors.grey.shade200,
+                            child: const Center(
+                              child: Icon(
+                                Icons.image,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
                         )
                       : Container(
                           height: 160,

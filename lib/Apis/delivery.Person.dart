@@ -30,7 +30,7 @@ void showErrorDialog(BuildContext context, String message) {
 class ApiClient {
   static final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "${ApiConstants.baseUrl}:8080",
+      baseUrl: "${ApiConstants.prodUrl}",
       connectTimeout: const Duration(seconds: 100),
       receiveTimeout: const Duration(seconds: 100),
       headers: {"Content-Type": "application/json"},
@@ -41,7 +41,7 @@ class ApiClient {
   static Dio getPrivateDio(String? token) {
     return Dio(
       BaseOptions(
-        baseUrl: "${ApiConstants.baseUrl}:8080",
+        baseUrl: "${ApiConstants.prodUrl}",
         connectTimeout: const Duration(seconds: 100),
         receiveTimeout: const Duration(seconds: 100),
         headers: {

@@ -21,7 +21,7 @@ class _DeliveryPartnerProfileState extends State<DeliveryPartnerProfile> {
 
   Future<Map<String, dynamic>> _fetchProfile(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final token = prefs.getString('auth_token');
 
     if (token == null || token.isEmpty) {
       throw Exception("No token found in local storage");
@@ -355,8 +355,12 @@ class _DeliveryPartnerProfileState extends State<DeliveryPartnerProfile> {
                             if (confirm == true) {
                               final prefs =
                                   await SharedPreferences.getInstance();
-                              await prefs.remove('authToken');
-                              // TODO: Navigate back to login screen
+                              await prefs.remove('auth_token');
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                "/role",
+                                (route) => false,
+                              );
                             }
                           },
                         ),

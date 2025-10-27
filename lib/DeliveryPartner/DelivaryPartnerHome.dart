@@ -25,7 +25,7 @@ class _DeliveryPartnerHomeState extends State<DeliveryPartnerHome> {
 
   Future<Map<String, dynamic>> _fetchDashboardData() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('authToken');
+    final token = prefs.getString('auth_token');
 
     if (token == null || token.isEmpty) {
       throw Exception("No token found in local storage");

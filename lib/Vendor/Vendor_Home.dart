@@ -564,7 +564,11 @@ class _VendorHomePageState extends State<VendorHomePage> {
               await prefs.remove("auth_token");
               if (context.mounted) {
                 Navigator.pop(ctx);
-                Navigator.pushReplacementNamed(context, "/vendors/login");
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  "/role",
+                  (route) => false,
+                );
               }
             },
             child: const Text("Logout"),

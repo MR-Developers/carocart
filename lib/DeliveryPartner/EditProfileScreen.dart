@@ -118,7 +118,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('authToken');
+      final token = prefs.getString('auth_token');
 
       if (token == null || token.isEmpty) {
         throw Exception("No token found. Please log in again.");
